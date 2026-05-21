@@ -224,7 +224,7 @@ export const PlaygroundSandbox: React.FC<PlaygroundSandboxProps> = ({ labId }) =
                 <div 
                   className={`border p-3 rounded-lg flex flex-col items-center justify-center transition-all ${
                     introMode === 'javascript' ? 'bg-amber-950/10 border-amber-500/30' : 'opacity-40 border-zinc-800'
-                  } ${introFlashes.js ? 'ring-1 ring-amber-500 bg-amber-500/10 scale-[1.02]' : ''}`}
+                  } ${introFlashes.javascript ? 'ring-1 ring-amber-500 bg-amber-500/10 scale-[1.02]' : ''}`}
                 >
                   <span className="text-[9px] text-amber-400 font-mono font-bold mb-1">Vanilla DOM Reset</span>
                   <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xs text-amber-300">

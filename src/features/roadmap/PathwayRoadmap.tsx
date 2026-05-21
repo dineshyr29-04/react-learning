@@ -4,7 +4,7 @@ import type { SectionType } from '../../store/learningStore';
 import { GlassCard } from '../../components/GlassCard';
 import { 
   Trophy, BookOpen, Layers, Cpu, Database, Activity, 
-  Terminal, Globe, CheckCircle2, Lock, 
+  Globe, CheckCircle2, Lock, 
   Sparkles, Flame, Play, RefreshCw, Compass
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -105,7 +105,6 @@ interface BadgeInfo {
 export const PathwayRoadmap: React.FC = () => {
   const { 
     completedModules, 
-    solvedChallenges, 
     xp, 
     setSection, 
     resetXPAndCompletion,
