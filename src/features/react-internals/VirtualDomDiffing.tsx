@@ -6,7 +6,7 @@ import { ArrowRight, Sparkles, RefreshCw, Layers } from 'lucide-react';
 interface VDomNode {
   id: string;
   type: string;
-  props?: Record<string, any>;
+  props?: Record<string, unknown>;
   children?: VDomNode[];
   text?: string;
   diffStatus?: 'unchanged' | 'updated' | 'inserted' | 'deleted';
@@ -114,9 +114,8 @@ export const VirtualDomDiffing: React.FC = () => {
   const preset = PRESETS[activePreset];
 
   useEffect(() => {
-    setIsDiffing(false);
     addLog(`VDOM Loaded Preset: ${preset.name}`, 'system');
-  }, [activePreset]);
+  }, [activePreset, addLog, preset.name]);
 
   const handleDiff = () => {
     setIsDiffing(true);
@@ -186,7 +185,10 @@ export const VirtualDomDiffing: React.FC = () => {
               return (
                 <button
                   key={key}
-                  onClick={() => setActivePreset(key as keyof typeof PRESETS)}
+                  onClick={() => {
+                    setActivePreset(key as keyof typeof PRESETS);
+                    setIsDiffing(false);
+                  }}
                   className={`w-full py-2.5 px-4 rounded-xl text-left text-xs font-semibold tracking-wide border transition-all ${
                     activePreset === key
                       ? 'bg-primary/20 border-primary text-zinc-100 glow-indigo'

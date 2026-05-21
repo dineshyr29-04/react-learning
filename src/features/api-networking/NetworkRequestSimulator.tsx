@@ -26,15 +26,19 @@ export const NetworkRequestSimulator: React.FC = () => {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const throttleTimerRef = useRef<number | null>(null);
 
-  useEffect(() => {
+  const handleModeChange = (newMode: 'raw' | 'debounce' | 'throttle') => {
+    setMode(newMode);
     startRef.current = Date.now();
     setKeypressEvents([]);
     setRequestEvents([]);
     setRequestCount(0);
     setServerLogs([]);
     setInputValue('');
+  };
+
+  useEffect(() => {
     addLog(`Network Simulator loaded in mode: ${mode.toUpperCase()}`, 'system');
-  }, [mode]);
+  }, [mode, addLog]);
 
   const fireApiRequest = (val: string) => {
     const elapsed = Date.now() - startRef.current;
@@ -116,7 +120,7 @@ export const NetworkRequestSimulator: React.FC = () => {
           <div className="space-y-4 select-none">
             <div className="flex flex-col gap-2">
               <button
-                onClick={() => setMode('raw')}
+                onClick={() => handleModeChange('raw')}
                 className={`py-2 px-3 rounded-lg text-xs font-semibold tracking-wide border transition-all text-left ${
                   mode === 'raw'
                     ? 'bg-danger/20 border-danger text-rose-300 glow-danger'
@@ -127,7 +131,7 @@ export const NetworkRequestSimulator: React.FC = () => {
                 <span className="block text-[10px] opacity-75 font-normal mt-0.5">Sends query on every single keypress.</span>
               </button>
               <button
-                onClick={() => setMode('debounce')}
+                onClick={() => handleModeChange('debounce')}
                 className={`py-2 px-3 rounded-lg text-xs font-semibold tracking-wide border transition-all text-left ${
                   mode === 'debounce'
                     ? 'bg-success/20 border-success text-emerald-300 glow-success'
@@ -138,7 +142,7 @@ export const NetworkRequestSimulator: React.FC = () => {
                 <span className="block text-[10px] opacity-75 font-normal mt-0.5">Waits for user to pause typing before fetching.</span>
               </button>
               <button
-                onClick={() => setMode('throttle')}
+                onClick={() => handleModeChange('throttle')}
                 className={`py-2 px-3 rounded-lg text-xs font-semibold tracking-wide border transition-all text-left ${
                   mode === 'throttle'
                     ? 'bg-primary/20 border-primary text-indigo-300 glow-indigo'

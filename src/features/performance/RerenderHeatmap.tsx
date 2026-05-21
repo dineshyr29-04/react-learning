@@ -2,16 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useLearningStore } from '../../store/learningStore';
 import { GlassCard } from '../../components/GlassCard';
 import { Shield, ShieldAlert, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 export const RerenderHeatmap: React.FC = () => {
   const { addLog } = useLearningStore();
-  const [nodes, setNodes] = useState<Record<string, { name: string; memoized: boolean; renderCount: number; lastRerenderTime: number }>>({
-    app: { name: 'App (Root)', memoized: false, renderCount: 0, lastRerenderTime: 0 },
-    nav: { name: 'Navigation', memoized: false, renderCount: 0, lastRerenderTime: 0 },
-    body: { name: 'MainDashboard', memoized: false, renderCount: 0, lastRerenderTime: 0 },
-    chart: { name: 'ChartWidget', memoized: false, renderCount: 0, lastRerenderTime: 0 },
-    table: { name: 'DataTable', memoized: false, renderCount: 0, lastRerenderTime: 0 }
+  const [nodes, setNodes] = useState<Record<string, { name: string; memoized: boolean; renderCount: number; isHot: boolean }>>({
+    app: { name: 'App (Root)', memoized: false, renderCount: 0, isHot: false },
+    nav: { name: 'Navigation', memoized: false, renderCount: 0, isHot: false },
+    body: { name: 'MainDashboard', memoized: false, renderCount: 0, isHot: false },
+    chart: { name: 'ChartWidget', memoized: false, renderCount: 0, isHot: false },
+    table: { name: 'DataTable', memoized: false, renderCount: 0, isHot: false }
   });
 
   const [referentialHookActive, setReferentialHookActive] = useState(false); // useCallback toggle
@@ -25,12 +24,11 @@ export const RerenderHeatmap: React.FC = () => {
 
   useEffect(() => {
     addLog('Performance Profiler Heatmap loaded.', 'system');
-  }, []);
+  }, [addLog]);
 
   const triggerRerender = (startNodeId: string) => {
     addLog(`Rerender triggered at component: <${nodes[startNodeId].name}>`, 'info');
     
-    const now = Date.now();
     const updatedNodes = { ...nodes };
     const queue = [startNodeId];
     const visited = new Set<string>();
@@ -49,14 +47,6 @@ export const RerenderHeatmap: React.FC = () => {
 
       // If it is not the source of render, check if it can be skipped via memoization
       if (currentId !== startNodeId) {
-        // Find parent ID
-        const parentId = Object.keys(updatedNodes).find(k => {
-          if (k === 'app') return false;
-          if (k === 'nav' || k === 'body') return 'app';
-          if (k === 'chart' || k === 'table') return 'body';
-          return false;
-        });
-        
         if (node.memoized) {
           // React.memo checks props.
           // If we have referential equality problems, React.memo fails!
@@ -72,7 +62,7 @@ export const RerenderHeatmap: React.FC = () => {
 
       if (shouldRerender) {
         node.renderCount += 1;
-        node.lastRerenderTime = now;
+        node.isHot = true;
         componentRenders.push(node.name);
 
         // Add children to queue
@@ -95,6 +85,20 @@ export const RerenderHeatmap: React.FC = () => {
     );
 
     addLog(`Finished render cycle. Rendered components: [${componentRenders.join(', ')}]`, 'system');
+
+    // Auto fade the hot red border status after 600ms
+    setTimeout(() => {
+      setNodes((prev) => {
+        const next = { ...prev };
+        componentRenders.forEach((name) => {
+          const key = Object.keys(next).find((k) => next[k].name === name);
+          if (key) {
+            next[key] = { ...next[key], isHot: false };
+          }
+        });
+        return next;
+      });
+    }, 600);
   };
 
   const toggleMemo = (nodeId: string) => {
@@ -111,7 +115,7 @@ export const RerenderHeatmap: React.FC = () => {
       const reset = { ...prev };
       Object.keys(reset).forEach(k => {
         reset[k].renderCount = 0;
-        reset[k].lastRerenderTime = 0;
+        reset[k].isHot = false;
       });
       return reset;
     });
@@ -124,8 +128,7 @@ export const RerenderHeatmap: React.FC = () => {
     const node = nodes[nodeId];
     if (!node) return 'bg-zinc-950/20';
 
-    const timeDiff = Date.now() - node.lastRerenderTime;
-    if (timeDiff < 600) {
+    if (node.isHot) {
       return 'bg-danger/25 border-danger text-rose-200 animate-pulse-glow'; // hot
     }
     
@@ -151,7 +154,7 @@ export const RerenderHeatmap: React.FC = () => {
                   className={`px-3 py-1 text-xs font-bold rounded-lg border transition-all ${
                     referentialHookActive 
                       ? 'bg-success/20 border-success text-success' 
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-500'
+                      : 'bg-zinc-900 border-zinc-850 text-zinc-500'
                   }`}
                 >
                   {referentialHookActive ? 'ON (Stable ref)' : 'OFF (Stale ref)'}

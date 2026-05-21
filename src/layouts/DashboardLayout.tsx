@@ -6,7 +6,8 @@ import { TerminalConsole } from '../components/TerminalConsole';
 // Icons
 import { 
   Cpu, Layers, Globe, Activity, Database, ShieldAlert,
-  ChevronRight, Award, GraduationCap, BarChart2, BookOpen, Terminal
+  ChevronRight, Award, GraduationCap, BarChart2, BookOpen, Terminal,
+  CheckCircle2, Compass
 } from 'lucide-react';
 
 // Visualizer imports
@@ -19,6 +20,7 @@ import { NetworkRequestSimulator } from '../features/api-networking/NetworkReque
 import { RerenderHeatmap } from '../features/performance/RerenderHeatmap';
 import { StateFlowSimulator } from '../features/state-management/StateFlowSimulator';
 import { ChallengeSandbox } from '../features/debugging-playground/ChallengeSandbox';
+import { PathwayRoadmap } from '../features/roadmap/PathwayRoadmap';
 
 interface NavGroup {
   sectionId: SectionType;
@@ -86,14 +88,18 @@ export const DashboardLayout: React.FC = () => {
     selectedLab, 
     learningMode, 
     solvedChallenges,
+    completedModules,
+    xp,
     setSection, 
-    setLearningMode 
+    setLearningMode,
+    completeModule
   } = useLearningStore();
 
   const activeTheory = theoryData[selectedLab];
 
   const renderActiveLab = () => {
     switch (selectedLab) {
+      case 'roadmap': return <PathwayRoadmap />;
       case 'rendering-flow': return <RenderingFlow />;
       case 'vdom-diff': return <VirtualDomDiffing />;
       case 'fiber-explorer': return <ReactFiberVisualizer />;
@@ -103,7 +109,7 @@ export const DashboardLayout: React.FC = () => {
       case 'rerender-heatmap': return <RerenderHeatmap />;
       case 'state-flow': return <StateFlowSimulator />;
       case 'challenges': return <ChallengeSandbox />;
-      default: return <RenderingFlow />;
+      default: return <PathwayRoadmap />;
     }
   };
 
@@ -115,6 +121,22 @@ export const DashboardLayout: React.FC = () => {
       case 'interview': return 'text-warning border-warning/30 bg-warning/5';
     }
   };
+
+  // Level mapping for short HUD display
+  const getRankHUD = (userXp: number) => {
+    if (userXp <= 200) return { level: 1, title: 'Novice' };
+    if (userXp <= 500) return { level: 2, title: 'Apprentice' };
+    if (userXp <= 900) return { level: 3, title: 'Explorer' };
+    if (userXp <= 1400) return { level: 4, title: 'Engineer' };
+    return { level: 5, title: 'Architect' };
+  };
+  const rankHUD = getRankHUD(xp);
+
+  const totalModulesCount = ROADMAP_NODES_COUNT();
+  function ROADMAP_NODES_COUNT() {
+    return 9; // Total 9 topics
+  }
+  const currentCompletedCount = completedModules.length + (solvedChallenges.length === 5 ? 1 : 0);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
@@ -130,6 +152,24 @@ export const DashboardLayout: React.FC = () => {
           <span className="font-bold text-sm tracking-wider text-zinc-100">ENGINELAB</span>
         </div>
 
+        {/* Pathway Roadmap Top-Level Button */}
+        <div className="px-3 pt-3 pb-1.5 border-b border-border bg-black/10">
+          <button
+            onClick={() => setSection('roadmap', 'roadmap')}
+            className={`w-full py-2 px-3 rounded-lg text-left text-xs font-bold tracking-wide flex items-center justify-between transition-all border ${
+              selectedLab === 'roadmap'
+                ? 'bg-primary/10 border-primary text-zinc-100 glow-indigo font-bold'
+                : 'bg-zinc-950/40 border-zinc-900 text-zinc-400 hover:text-zinc-200 hover:border-zinc-800'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <Compass size={14} className={selectedLab === 'roadmap' ? 'text-primary' : 'text-zinc-500'} />
+              Pathway Roadmap
+            </span>
+            <ChevronRight size={12} className={`opacity-40 transition-transform ${selectedLab === 'roadmap' ? 'rotate-90' : ''}`} />
+          </button>
+        </div>
+
         {/* Sidebar Navigation Links */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
           {NAVIGATION_GROUPS.map((group) => (
@@ -142,6 +182,9 @@ export const DashboardLayout: React.FC = () => {
               <div className="space-y-0.5">
                 {group.labs.map((lab) => {
                   const isSelected = selectedLab === lab.id;
+                  const isCompleted = lab.id === 'challenges' 
+                    ? solvedChallenges.length === 5 
+                    : completedModules.includes(lab.id);
                   return (
                     <button
                       key={lab.id}
@@ -154,7 +197,10 @@ export const DashboardLayout: React.FC = () => {
                           : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30 border border-transparent'
                       }`}
                     >
-                      <span>{lab.name}</span>
+                      <span className="flex items-center gap-1.5">
+                        {isCompleted && <CheckCircle2 size={11} className="text-success" />}
+                        {lab.name}
+                      </span>
                       <ChevronRight size={12} className={`opacity-40 transition-transform ${isSelected ? 'rotate-90' : ''}`} />
                     </button>
                   );
@@ -165,15 +211,21 @@ export const DashboardLayout: React.FC = () => {
         </nav>
 
         {/* Sidebar Footer telemetry */}
-        <div className="p-3 border-t border-border bg-black/25 flex flex-col gap-2">
-          <div className="flex items-center justify-between text-[11px] text-zinc-500 font-mono">
-            <span>Challenges solved:</span>
-            <span className="text-success font-bold">{solvedChallenges.length}/5</span>
+        <div className="p-3 border-t border-border bg-black/25 flex flex-col gap-2.5">
+          {/* Level Rank Status HUD */}
+          <div className="flex items-center justify-between text-[10px] font-mono select-text">
+            <span className="text-zinc-500 font-bold">Lvl {rankHUD.level} {rankHUD.title}</span>
+            <span className="text-zinc-300 font-semibold">{xp} XP</span>
+          </div>
+
+          <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+            <span>Modules Complete:</span>
+            <span className="text-success font-bold">{currentCompletedCount}/{totalModulesCount}</span>
           </div>
           <div className="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden border border-zinc-850">
             <div 
-              className="bg-success h-full transition-all duration-500" 
-              style={{ width: `${(solvedChallenges.length / 5) * 100}%` }}
+              className="bg-primary h-full transition-all duration-500" 
+              style={{ width: `${(currentCompletedCount / totalModulesCount) * 100}%` }}
             />
           </div>
         </div>
@@ -190,40 +242,42 @@ export const DashboardLayout: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-zinc-500 font-mono tracking-widest uppercase">LABS //</span>
             <span className="text-sm font-bold text-zinc-200 tracking-wide">
-              {activeTheory?.title || 'Telemetry Visualizer'}
+              {selectedLab === 'roadmap' ? 'Learning Pathway Overview' : (activeTheory?.title || 'Telemetry Visualizer')}
             </span>
           </div>
 
           {/* Mode Selector Option buttons */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-zinc-500 font-bold font-mono tracking-wider">LEARNING INTENSITY:</span>
-            <div className="flex bg-black/40 border border-border p-1 rounded-xl">
-              {(['beginner', 'intermediate', 'advanced', 'interview'] as LearningMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setLearningMode(mode)}
-                  className={`py-1 px-3.5 rounded-lg text-[10px] font-bold tracking-wider uppercase transition-all ${
-                    learningMode === mode
-                      ? getDifficultyColor(mode) + ' border shadow-sm font-extrabold'
-                      : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
+          {selectedLab !== 'roadmap' && (
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-zinc-500 font-bold font-mono tracking-wider">LEARNING INTENSITY:</span>
+              <div className="flex bg-black/40 border border-border p-1 rounded-xl">
+                {(['beginner', 'intermediate', 'advanced', 'interview'] as LearningMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setLearningMode(mode)}
+                    className={`py-1 px-3.5 rounded-lg text-[10px] font-bold tracking-wider uppercase transition-all ${
+                      learningMode === mode
+                        ? getDifficultyColor(mode) + ' border shadow-sm font-extrabold'
+                        : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                    }`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
         </header>
 
         {/* B. Center Workspace Split Grid */}
         <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 overflow-hidden">
           
-          {/* Left panel: Theory & Instructions (4 cols) */}
-          <div className="xl:col-span-3 border-r border-border bg-[#09090b]/80 overflow-y-auto flex flex-col p-4 space-y-4">
-            
-            {/* Theory Card */}
-            {activeTheory && (
+          {/* Left panel: Theory & Instructions (3 cols) */}
+          {selectedLab !== 'roadmap' && activeTheory && (
+            <div className="xl:col-span-3 border-r border-border bg-[#09090b]/80 overflow-y-auto flex flex-col p-4 space-y-4">
+              
+              {/* Theory Card */}
               <div className="space-y-4 select-text">
                 <div className="space-y-1 select-none">
                   <h2 className="text-base font-extrabold text-zinc-100 tracking-tight leading-snug">
@@ -295,13 +349,40 @@ export const DashboardLayout: React.FC = () => {
                   </div>
                 )}
 
+                <hr className="border-border select-none" />
+
+                {/* Mark as Completed Button */}
+                {selectedLab !== 'challenges' && (
+                  <div className="pt-2 select-none">
+                    <button
+                      onClick={() => completeModule(selectedLab)}
+                      disabled={completedModules.includes(selectedLab)}
+                      className={`w-full py-2.5 rounded-lg border font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${
+                        completedModules.includes(selectedLab)
+                          ? 'bg-success/15 border-success/35 text-success cursor-default'
+                          : 'bg-primary hover:bg-primary-hover text-white border-transparent'
+                      }`}
+                    >
+                      {completedModules.includes(selectedLab) ? (
+                        <>
+                          <CheckCircle2 size={13} /> Completed (+100 XP)
+                        </>
+                      ) : (
+                        <>
+                          <Award size={13} /> Mark Completed (+100 XP)
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
               </div>
-            )}
 
-          </div>
+            </div>
+          )}
 
-          {/* Right panel: Active Visualizer sandbox & console (9 cols) */}
-          <div className="xl:col-span-9 flex flex-col overflow-hidden p-4 gap-4 bg-zinc-950/20">
+          {/* Right panel: Active Visualizer sandbox & console (9 cols or 12 cols if roadmap) */}
+          <div className={`${selectedLab === 'roadmap' ? 'xl:col-span-12' : 'xl:col-span-9'} flex flex-col overflow-hidden p-4 gap-4 bg-zinc-950/20`}>
             
             {/* Main simulation workspace */}
             <div className="flex-1 overflow-y-auto min-h-[300px]">
@@ -309,9 +390,11 @@ export const DashboardLayout: React.FC = () => {
             </div>
 
             {/* Bottom Console logs output panel */}
-            <div className="h-44 shrink-0">
-              <TerminalConsole />
-            </div>
+            {selectedLab !== 'roadmap' && (
+              <div className="h-44 shrink-0">
+                <TerminalConsole />
+              </div>
+            )}
 
           </div>
 

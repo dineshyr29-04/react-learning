@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLearningStore } from '../../store/learningStore';
 import { GlassCard } from '../../components/GlassCard';
 import { Play, Pause, ChevronRight, RotateCcw, Link2 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface FiberNodeInfo {
   id: string;
@@ -192,7 +191,7 @@ export const ReactFiberVisualizer: React.FC = () => {
 
   useEffect(() => {
     addLog(`Fiber step loaded: ${step.phase.toUpperCase()} - ${step.currentNodeId || 'Root'}`, 'info');
-  }, [stepIdx]);
+  }, [stepIdx, addLog, step.phase, step.currentNodeId]);
 
   const handleTrigger = () => {
     setStepIdx(1);

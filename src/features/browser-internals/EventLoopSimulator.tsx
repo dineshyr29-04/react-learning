@@ -198,11 +198,15 @@ export const EventLoopSimulator: React.FC = () => {
   const preset = PRESETS[activePreset];
   const currentStep: EventLoopStep = preset.steps[stepIdx] || preset.steps[0];
 
-  useEffect(() => {
+  const handlePresetChange = (newPreset: 'standard' | 'starvation') => {
+    setActivePreset(newPreset);
     setStepIdx(0);
     setIsPlaying(false);
+  };
+
+  useEffect(() => {
     addLog(`Event Loop Loaded script: ${PRESETS[activePreset].name}`, 'system');
-  }, [activePreset]);
+  }, [activePreset, addLog]);
 
   // Handle auto playback
   useEffect(() => {
@@ -245,7 +249,7 @@ export const EventLoopSimulator: React.FC = () => {
         <GlassCard title="Source Code Preset">
           <div className="flex gap-2 mb-4">
             <button
-              onClick={() => setActivePreset('standard')}
+              onClick={() => handlePresetChange('standard')}
               className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold tracking-wide border transition-all ${
                 activePreset === 'standard'
                   ? 'bg-primary/20 border-primary text-zinc-100'
@@ -255,7 +259,7 @@ export const EventLoopSimulator: React.FC = () => {
               setTimeout vs Promise
             </button>
             <button
-              onClick={() => setActivePreset('starvation')}
+              onClick={() => handlePresetChange('starvation')}
               className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold tracking-wide border transition-all ${
                 activePreset === 'starvation'
                   ? 'bg-danger/20 border-danger text-zinc-100'

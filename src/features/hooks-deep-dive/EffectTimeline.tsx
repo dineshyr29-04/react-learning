@@ -12,20 +12,22 @@ export const EffectTimeline: React.FC = () => {
   const [effectLogs, setEffectLogs] = useState<{ id: string; val: number; stale: boolean }[]>([]);
   const [capturedClosureVal, setCapturedClosureVal] = useState<number | null>(null);
 
-  useEffect(() => {
-    // Clear logs on mounts
+  const handleToggleDependency = (val: boolean) => {
+    setHasDependency(val);
     setEffectLogs([]);
     setCapturedClosureVal(null);
     setTimelineStep('idle');
-    addLog(`Effect Timeline Loaded. Dependencies: ${hasDependency ? '[count]' : '[] (Empty)'}`, 'system');
-  }, [hasDependency]);
+    addLog(`Effect Timeline Loaded. Dependencies: ${val ? '[count]' : '[] (Empty)'}`, 'system');
+  };
 
   // Simulate Stale closure execution interval
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
     
-    // Set captured closure when effect runs
-    setCapturedClosureVal(count);
+    // Set captured closure when effect runs safely (defer to avoid synchronous state update in render effect)
+    setTimeout(() => {
+      setCapturedClosureVal(count);
+    }, 0);
     
     interval = setInterval(() => {
       // Check if closure value is stale compared to real state count
@@ -49,6 +51,7 @@ export const EffectTimeline: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasDependency ? count : null]); // Re-register interval ONLY if hasDependency is true and count changes
 
   const handleIncrement = () => {
@@ -116,7 +119,7 @@ export const EffectTimeline: React.FC = () => {
           <div className="space-y-4 select-none">
             <div className="flex gap-2">
               <button
-                onClick={() => setHasDependency(false)}
+                onClick={() => handleToggleDependency(false)}
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold tracking-wide border transition-all ${
                   !hasDependency
                     ? 'bg-danger/20 border-danger text-rose-300'
@@ -126,7 +129,7 @@ export const EffectTimeline: React.FC = () => {
                 Missing Dependency: []
               </button>
               <button
-                onClick={() => setHasDependency(true)}
+                onClick={() => handleToggleDependency(true)}
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold tracking-wide border transition-all ${
                   hasDependency
                     ? 'bg-success/20 border-success text-emerald-300'
@@ -248,7 +251,7 @@ export const EffectTimeline: React.FC = () => {
                   ) : (
                     effectLogs.map((log) => (
                       <motion.div
-                        key={log.id}
+                          key={log.id}
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className={`flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-mono ${

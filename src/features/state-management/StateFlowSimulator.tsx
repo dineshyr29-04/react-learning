@@ -20,15 +20,18 @@ export const StateFlowSimulator: React.FC = () => {
 
   const [activePaths, setActivePaths] = useState<string[]>([]);
 
-  useEffect(() => {
+  const handlePatternChange = (newPattern: 'drilling' | 'context' | 'zustand') => {
+    setPattern(newPattern);
     setRenderCount({ app: 0, container: 0, sidebar: 0, content: 0, profile: 0, viewer: 0 });
     setActivePaths([]);
+  };
+
+  useEffect(() => {
     addLog(`State Flow Loaded Pattern: ${pattern.toUpperCase()}`, 'system');
-  }, [pattern]);
+  }, [pattern, addLog]);
 
   const triggerUpdate = (type: 'profile' | 'viewer') => {
     addLog(`State update triggered for value: ${type}`, 'info');
-    const updateTime = Date.now();
 
     setRenderCount((prev) => {
       const next = { ...prev };
@@ -107,7 +110,7 @@ export const StateFlowSimulator: React.FC = () => {
         <GlassCard title="Architectures Selection">
           <div className="space-y-2 select-none">
             <button
-              onClick={() => setPattern('drilling')}
+              onClick={() => handlePatternChange('drilling')}
               className={`w-full py-3 px-4 rounded-xl text-left text-xs font-semibold tracking-wide border transition-all ${
                 pattern === 'drilling'
                   ? 'bg-danger/20 border-danger text-rose-300 glow-danger'
@@ -124,7 +127,7 @@ export const StateFlowSimulator: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setPattern('context')}
+              onClick={() => handlePatternChange('context')}
               className={`w-full py-3 px-4 rounded-xl text-left text-xs font-semibold tracking-wide border transition-all ${
                 pattern === 'context'
                   ? 'bg-warning/20 border-warning text-amber-300 glow-warning'
@@ -141,7 +144,7 @@ export const StateFlowSimulator: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setPattern('zustand')}
+              onClick={() => handlePatternChange('zustand')}
               className={`w-full py-3 px-4 rounded-xl text-left text-xs font-semibold tracking-wide border transition-all ${
                 pattern === 'zustand'
                   ? 'bg-success/20 border-success text-emerald-300 glow-success'

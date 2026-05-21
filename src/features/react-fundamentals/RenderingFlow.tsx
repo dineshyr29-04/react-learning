@@ -11,7 +11,7 @@ export const RenderingFlow: React.FC = () => {
 
   useEffect(() => {
     addLog('React Rendering Pipeline Simulator loaded.', 'system');
-  }, []);
+  }, [addLog]);
 
   const triggerPipeline = () => {
     const nextCount = clickCount + 1;
