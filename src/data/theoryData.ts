@@ -1,315 +1,588 @@
+export interface LevelData {
+  overview: string;
+  keyPoints: string[];
+  howToUse: string;
+  codeExample: string;
+}
+
 export interface LabTheory {
   title: string;
   subtitle: string;
-  beginner: {
-    overview: string;
-    keyPoints: string[];
-    howToUse: string;
-  };
-  intermediate: {
-    overview: string;
-    keyPoints: string[];
-    howToUse: string;
-  };
-  advanced: {
-    overview: string;
-    keyPoints: string[];
-    howToUse: string;
-  };
+  beginner: LevelData;
+  intermediate: LevelData;
+  advanced: LevelData;
   interview: {
     question: string;
     answer: string;
     mentalModel: string;
+    codeExample: string;
   };
 }
 
 export const theoryData: Record<string, LabTheory> = {
-  'rendering-flow': {
-    title: 'React Rendering Pipeline',
-    subtitle: 'Mounting, Rerendering, and DOM Commits',
+  'intro': {
+    title: '1. Introduction to React',
+    subtitle: 'Declarative Programming & The Virtual DOM',
     beginner: {
-      overview: 'React rendering is a 3-step process: Trigger (state updates), Render (calling components and comparing elements), and Commit (writing changes to the screen DOM).',
+      overview: 'React is a library for building user interfaces. Instead of manually updating elements on the screen (imperative programming like document.getElementById), you describe what you want the screen to look like (declarative programming) and React handles the updates.',
       keyPoints: [
-        'Trigger: User clicks a button, changing state via useState.',
-        'Render: React calls your component to see what JSX it returns.',
-        'Commit: React updates the actual web page DOM only for what changed.'
+        'Declarative: Describe WHAT the UI should look like, not HOW to change it.',
+        'Component-Based: UIs are built from small, isolated, reusable pieces of code.',
+        'Virtual DOM: React maintains a lightweight representation of the real DOM in memory.'
       ],
-      howToUse: 'Click the buttons inside the Interactive Simulator to trigger state updates. Observe the progress meter move from Trigger to Render, then Commit and Paint.'
+      howToUse: 'Click the buttons on the right to toggle between Declarative React code and Imperative Vanilla JS. Watch how the DOM updates visually.',
+      codeExample: `// Declarative React
+function Welcome() {
+  return <h1>Hello World!</h1>;
+}`
     },
     intermediate: {
-      overview: 'React separates the "Render" phase (which is asynchronous and can be paused) from the "Commit" phase (which is synchronous and fast). During rendering, React executes component functions to generate the virtual DOM structure.',
+      overview: 'The Virtual DOM (VDOM) is a programming concept where a virtual representation of a UI is kept in memory and synced with the "real" DOM by a library such as ReactDOM. This process is called reconciliation.',
       keyPoints: [
-        'Render: CPU-bound work. Component code is invoked, generating React elements.',
-        'Reconciliation: Diffing the old tree and the new tree to find changes.',
-        'Commit: DOM mutations are executed. This is synchronous to prevent layout shifts.'
+        'Efficiency: Changing the real DOM is slow; updating the Virtual DOM is extremely fast.',
+        'Batching: React aggregates multiple updates together to minimize browser paint cycles.',
+        'Reconciliation: The O(n) diffing algorithm that determines what parts of the DOM need to change.'
       ],
-      howToUse: 'Change the slider options in the editor and click "Run Code". Follow the animated arrows representing the Fiber work pipeline.'
+      howToUse: 'Edit the heading tag in the editor. Click "Run Code" and observe how React compares the old virtual node tree to the new tree, highlighting only the changed nodes.',
+      codeExample: `// Virtual DOM Example
+const element = (
+  <div className="card">
+    <h2>Reconciliation</h2>
+    <p>React updates only this paragraph!</p>
+  </div>
+);`
     },
     advanced: {
-      overview: 'Concurrent React split the rendering engine into interruptible slices of work. Rendering is no longer block-and-render. In the Render phase, scheduler prioritizes updates, performing work on Fiber trees. Only when complete does it pass layout updates to the Commit phase.',
+      overview: 'React 18 introduces Concurrent Rendering. Instead of blocking the browser main thread during large updates, React can pause, yield, and resume rendering operations. This is supported by the Fiber engine which splits rendering work into smaller units.',
       keyPoints: [
-        'Scheduler: React prioritizes frames (e.g. user input > transitions).',
-        'Interruptible Render: Fibers are processed iteratively. If higher priority tasks enter, React discards the current render and restarts.',
-        'Effects: useEffect triggers post-commit asynchronously, while useLayoutEffect runs synchronously before browser paint.'
+        'Fiber Work Loop: An interruptible traversal of the component tree.',
+        'Lanes: A bitmask representing update priorities (Sync, Transition, Idle).',
+        'Time Slicing: Breaking rendering into 5ms slices to keep the browser responsive.'
       ],
-      howToUse: 'Speed up/slow down execution. Observe the step logs showing exactly how fibers are evaluated, paused, or flushed.'
+      howToUse: 'Slow down the work loop speed to see how React processes fiber nodes one-by-one and yields back control to the browser.',
+      codeExample: `// Concurrent Rendering demo
+import { startTransition, useState } from 'react';
+
+function SearchInput() {
+  const [query, setQuery] = useState('');
+  
+  const handleChange = (e) => {
+    // Keep input responsive by deferring search work
+    startTransition(() => {
+      setQuery(e.target.value);
+    });
+  };
+}`
     },
     interview: {
-      question: 'What is the difference between rendering and painting in React?',
-      answer: 'Rendering is the engine-internal computation where React calls components, performs VDOM diffing, and calculates changes (Render Phase). Painting is the browser mechanism that executes layout calculations and outputs pixels on the physical screen (happening after React commits mutations to the DOM). Rendering can occur without any changes committed if the diff results in a net-zero mutation.',
-      mentalModel: 'Rendering is the architectural drawing; Committing is the physical construction update; Painting is turning on the lights so users can see the building.'
+      question: 'What is the Virtual DOM and how does React use it to optimize rendering?',
+      answer: 'The Virtual DOM is a lightweight, in-memory copy of the actual DOM. When a component’s state changes, React creates a new Virtual DOM tree and compares it with the previous one (a process called "diffing"). React then calculates the minimum set of changes needed (reconciliation) and updates only those specific parts of the real DOM in a single batch (commit phase), preventing expensive full-page reflows.',
+      mentalModel: 'The Virtual DOM is like a blue-print. It is much cheaper to make edits and draft changes on the blueprint paper than it is to tear down and rebuild a brick-and-mortar wall on every tiny design change.',
+      codeExample: `// Virtual DOM updates behind the scenes:
+// 1. Initial Render: React renders <button>Click (0)</button>
+// 2. State click: React computes new element <button>Click (1)</button>
+// 3. Diff: Only text inside button changed
+// 4. Commit: element.textContent = "Click (1)"`
     }
   },
-  'vdom-diff': {
-    title: 'Virtual DOM Diffing',
-    subtitle: 'The O(n) Heuristic Reconciliation Algorithm',
+  'jsx': {
+    title: '2. JSX Fundamentals',
+    subtitle: 'JavaScript XML Syntax and Compilation',
     beginner: {
-      overview: 'React builds a lightweight copy of the web page in memory (Virtual DOM). When state changes, it builds a new one and diffs (compares) them to find the minimum edits required for the real web page.',
+      overview: 'JSX stands for JavaScript XML. It is a syntax extension for JavaScript that allows you to write HTML-like markup directly inside your JavaScript files, making it much easier to write and read UI structures.',
       keyPoints: [
-        'VDOM is just JS objects representing HTML tags.',
-        'React avoids updating everything, which makes the browser slow.',
-        'It changes only the specific nodes that changed.'
+        'Embedding Expressions: Put any valid JavaScript inside curly braces { }.',
+        'Single Root Element: Components must return a single parent element (or a Fragment <>...</>).',
+        'Attributes: Use camelCase names (e.g., class becomes className, onclick becomes onClick).'
       ],
-      howToUse: 'Click nodes to change their state, text, or structure. Watch the Old VDOM vs New VDOM update and look at the highlighted red/green elements representing differences.'
+      howToUse: 'Modify the variables inside the code box. Watch how the values of dynamic text, classes, and styles are evaluated live in the output screen.',
+      codeExample: `function UserProfile() {
+  const name = "Alex";
+  const active = true;
+  
+  return (
+    <div className={active ? "active-user" : "inactive"}>
+      <h2>Name: {name}</h2>
+      <p>Status: {active ? "Online" : "Offline"}</p>
+    </div>
+  );
+}`
     },
     intermediate: {
-      overview: 'Full tree diffing is O(n³) computationally. React implements O(n) heuristics: 1) Two elements of different types produce different trees, 2) The developer can hint at persistent children across renders with a key prop.',
+      overview: 'JSX is not valid JavaScript that browsers can run directly. Compilers (like Babel, SWC, or Vite) transform JSX into standard JavaScript function calls: `React.createElement()` or the new JSX runtime `jsx()` calls.',
       keyPoints: [
-        'Type checks: If a <div> changes to a <p>, React tears down the entire subtree and remounts it.',
-        'Attribute updates: If only className or style changes, React modifies the node in place without dismantling it.',
-        'List reconciliation: Keys tell React which elements remained stable, allowing elements to be reordered instead of recreated.'
+        'Compilation: <div className="btn">Hi</div> becomes React.createElement("div", { className: "btn" }, "Hi").',
+        'Tree Structure: Children are passed as subsequent arguments or as a prop named children.',
+        'Type Check: Capitalized elements (e.g., <MyButton />) compile to variable references, while lowercase elements (e.g., <button>) compile to strings.'
       ],
-      howToUse: 'Toggle the lists to add, remove, or shuffle elements. Check the DOM Operation List showing exact API executions (e.g. PATCH, REPLACE).'
+      howToUse: 'Change the markup tags in the editor. Observe the compiled JavaScript output section below the preview and notice how React nests element calls.',
+      codeExample: `// Original JSX:
+// <div id="container"><h1 color="red">Hello</h1></div>
+
+// Transpiled JS:
+import { jsx as _jsx } from "react/jsx-runtime";
+const node = _jsx("div", { 
+  id: "container", 
+  children: _jsx("h1", { color: "red", children: "Hello" }) 
+});`
     },
     advanced: {
-      overview: 'React reconciler uses fiber objects to maintain component metadata. The diffing algorithm evaluates child nodes using their types, keys, and props. If a key matches, it reuses the fiber and applies updates. If not, it marks the old fiber for deletion and spawns a new one.',
+      overview: 'Modern JSX runtimes do not require importing React in every file. Under the hood, the compiler imports functions from `react/jsx-runtime` to build the elements. React elements are immutable plain JavaScript objects describing the component tree.',
       keyPoints: [
-        'Fiber reuse: React looks up children using mapped keys to match old fibers to new elements.',
-        'Deletion queue: Unmatched old fibers are stored in a deletion list and flushed during commit.',
-        'Key index hazard: Using array index as keys causes mismatched internal states if items are inserted or reordered.'
+        'Immutability: You cannot modify props or children of an element object after creation.',
+        'Props Object: Frozen at creation time to prevent side effects during rendering.',
+        'Children Array: Flat versus nested array representations depending on key properties.'
       ],
-      howToUse: 'Select the "Key Index Mismatch" preset in the panel to witness how elements are mistakenly re-rendered or retain input state.'
+      howToUse: 'Inspect the React Element JSON log in the console. Note the $$typeof symbol, type, props, and key properties of the compiled object.',
+      codeExample: `// Real React Element Object representation:
+const elementObj = {
+  $$typeof: Symbol.for('react.element'),
+  type: 'div',
+  props: {
+    className: 'card',
+    children: 'Hello content'
+  },
+  key: 'unique_card_key',
+  ref: null
+};`
     },
     interview: {
-      question: 'Why is using Math.random() as a key prop a major performance hazard?',
-      answer: 'React uses keys to identify stable elements. If a key is randomly generated on every render, React will treat it as a brand-new component type. It will unmount (destroy) the existing DOM node, lose state (e.g. text inputs), run all cleanups, and remount a new node. This causes massive layout thrashing and renders reconciliation useless.',
-      mentalModel: 'Imagine changing your house address randomly every morning. The mail carrier has to tear down the old house and rebuild a new one just to deliver mail.'
+      question: 'Why do we need to return a single root element in a React component JSX?',
+      answer: 'JSX compiles down to a single standard JavaScript function call (either React.createElement or a jsx runtime call). In JavaScript, a function can only return a single value (or object). Returning multiple adjacent elements would compile to multiple sibling function calls without a wrapping statement, which is syntactically invalid. Wrap sibling elements in a Fragment (<>...</>) to satisfy this rule without adding redundant DOM wrappers.',
+      mentalModel: 'Think of returning values from a function. You cannot write "return 1, 2, 3;" and expect a function to return three separate values. You must wrap them in an array or object, which in JSX translates to a wrapping parent element.',
+      codeExample: `// ❌ Syntax Error: Compiles to two returns
+// return <Header />, <Content />;
+
+//  Success: Compiles to a single function call
+// return <React.Fragment children={[<Header />, <Content />]} />`
     }
   },
-  'fiber-explorer': {
-    title: 'React Fiber Architecture',
-    subtitle: 'The Work Loop and Priority Scheduling',
+  'props': {
+    title: '3. Components & Props',
+    subtitle: 'Reusability, Unidirectional Data Flow, and Immutable Inputs',
     beginner: {
-      overview: 'React Fiber is the rendering engine that lets React pause rendering to handle user input immediately, keeping the web page responsive.',
+      overview: 'Components are the building blocks of React, like custom HTML elements. Props (short for properties) are inputs passed into components, letting you reuse the same component template with different data.',
       keyPoints: [
-        'Fibers are units of work for components.',
-        'React processes one component at a time, checking if the browser is busy.',
-        'It uses a linked-list tree structure (parent, child, sibling).'
+        'Reusability: Write a component once (e.g. UserCard), use it multiple times.',
+        'Props: Passed like HTML attributes: <Card title="Hello" />.',
+        'Read-Only: A component must never modify its own props (props are immutable).'
       ],
-      howToUse: 'Use the controls to start the Fiber Work Loop. Watch the scheduler progress down the node graph, traversing children and siblings.'
+      howToUse: 'Change the prop values in the interactive controller panel on the right. See how the UserCard component automatically re-renders with the new values.',
+      codeExample: `// Child component receiving props
+function UserCard(props) {
+  return (
+    <div className="card">
+      <h3>{props.name}</h3>
+      <p>Role: {props.role}</p>
+    </div>
+  );
+}
+
+// Parent rendering child with different props
+function App() {
+  return (
+    <>
+      <UserCard name="Alice" role="Developer" />
+      <UserCard name="Bob" role="Designer" />
+    </>
+  );
+}`
     },
     intermediate: {
-      overview: 'Fiber nodes represent components and their state queues. Unlike standard JS execution stacks, Fiber represents a virtual stack frame where units of work are processed in a loop: `while (workInProgress !== null) { workInProgress = performUnitOfWork(workInProgress); }`.',
+      overview: 'React uses unidirectional data flow: data always flows downwards from parent components to children. To send data back up, we pass callback functions as props, which child components can invoke when events happen.',
       keyPoints: [
-        'Double Buffering: React has a current tree (on screen) and a workInProgress tree (in memory). Committing swaps the pointers.',
-        'traversal: React walks down the tree to the child, then to siblings, then back to the parent. This is a depth-first search.',
-        'Priority: Update triggers are queued with Lane priorities (Sync, Input, Transition, Idle).'
+        'Destructuring: Extract props directly in function parameters: function Card({ name, role }).',
+        'Default Props: Use JavaScript default values to fallback if a prop is missing: function Card({ name = "Guest" }).',
+        'Callback Props: Passing state updater functions downwards to allow child-to-parent communication.'
       ],
-      howToUse: 'Click "Step" to walk through the Fiber loop. Watch how components compile state mutations and pass lanes to the scheduler.'
+      howToUse: 'Edit the callback trigger code. Click the "Add Alert" button in the Card component and watch the alert count state increment in the Parent component.',
+      codeExample: `// Child component with event callback prop
+function DeleteButton({ onDelete }) {
+  return <button onClick={onDelete}>Delete Item</button>;
+}
+
+// Parent holding the action state
+function App() {
+  const handleDelete = () => alert("Deleted item!");
+  return <DeleteButton onDelete={handleDelete} />;
+}`
     },
     advanced: {
-      overview: 'React Scheduler uses the browser API requestIdleCallback/MessageChannel to split rendering. The Work Loop executes individual fibers. After each fiber, it checks `shouldYield()` to see if the browser needs to paint or respond to a click, saving the pointer to resume later.',
+      overview: 'Props are shallowly compared during component updates. If you pass an object or a function as a prop, they get new memory addresses on every parent render. This can cause unnecessary re-renders in children wrapped with React.memo unless optimized with useCallback/useMemo.',
       keyPoints: [
-        'Concurrency: Yielding work lets browsers handle high-priority input frames (16ms budget).',
-        'Lanes: A bitmask tracking priority layers, enabling suspension of low-priority renders.',
-        'Fiber references: Child, Sibling, and Return pointers allow React to climb up, down, or across the tree at any step.'
+        'Referential Equality: Inline functions and objects create new references on every render cycle.',
+        'React.memo: Skips re-rendering a component if its props have not changed.',
+        'Children Prop: A special prop that passes nested elements: <Card><h1>Title</h1></Card>.'
       ],
-      howToUse: 'Trigger a long render and click on the screen. Watch the visual scheduler yield, process the click action, and return to render.'
+      howToUse: 'Toggle the optimization mode. Observe how changing unrelated state in the Parent triggers a re-render in the Child Card, and how useCallback prevents this.',
+      codeExample: `import { memo, useCallback, useState } from 'react';
+
+// Memoized child component
+const SimpleButton = memo(({ onClick }) => {
+  return <button onClick={onClick}>Click me</button>;
+});
+
+function App() {
+  const [count, setCount] = useState(0);
+  // useCallback keeps the function reference stable
+  const handleClick = useCallback(() => {
+    console.log("Button clicked!");
+  }, []);
+  
+  return <SimpleButton onClick={handleClick} />;
+}`
     },
     interview: {
-      question: 'What is React Fiber and how does it solve the stack reconciler problem?',
-      answer: 'React Fiber is a rewrite of Reacts core reconciliation algorithm, turning rendering from a synchronous call stack process into an interruptible loop. The old stack reconciler processed recursively, locking the main thread and causing input lag. Fiber represents components as independent stack frames (fibers) organized in a linked list. This allows React to pause, yield, prioritize, or discard rendering work.',
-      mentalModel: 'Stack Reconciler is a waterfall you cannot stop once it starts. Fiber is a staircase where you can pause at any step, catch your breath, let someone pass, and continue.'
+      question: 'What does it mean that "props are read-only" in React?',
+      answer: 'React enforces unidirectional data flow. Props represent the input data passed down from a parent component. A component must never mutate its props directly. If you modify a prop object (e.g. props.name = "new"), React’s reconciliation engine will not detect the change, leading to inconsistent UI states and hard-to-track bugs. If a component needs to change its data over time, it must use its own local state or request a change from the parent by calling a callback function prop.',
+      mentalModel: 'Props are like an invoice details sheet. A delivery person cannot scratch out the delivery address or price details on their own copy. If they need an adjustment, they must submit a request to headquarters to send a revised invoice.',
+      codeExample: `// ❌ INCORRECT (Direct mutation)
+function UserCard(props) {
+  props.name = "Mutated Name"; // Crashes/breaks data flow
+  return <div>{props.name}</div>;
+}
+
+//  CORRECT (Request change via callback)
+function UserCard({ name, onNameChange }) {
+  return (
+    <input value={name} onChange={e => onNameChange(e.target.value)} />
+  );
+}`
     }
   },
-  'effect-timeline': {
-    title: 'useEffect Timeline & Closures',
-    subtitle: 'Mount, Rerender, Cleanups, and Dependency Arrays',
+  'state': {
+    title: '4. State & Events (useState)',
+    subtitle: 'Interactive Components, State Triggers, and Async Batching',
     beginner: {
-      overview: 'useEffect runs code after your component mounts or updates. It is used to connect to systems outside React, like API fetches, intervals, or page events.',
+      overview: 'State is a component\'s memory. Unlike props which are passed down and read-only, state is declared inside a component, allows storage of user inputs, and triggers a full UI update (re-render) whenever it changes.',
       keyPoints: [
-        'Mount: The effect runs once when the component appears.',
-        'Rerender: The effect runs again if variables in the dependency array change.',
-        'Cleanup: React runs a cleanup function before running the effect again, or when the component disappears.'
+        'useState Hook: Declares state variable. Returns [value, setValue].',
+        'State Updates: Calling setValue tells React to re-render the component with the new value.',
+        'Events: Connect state updates to user interactions using handlers (onClick, onChange).'
       ],
-      howToUse: 'Click "Update State" or "Trigger Rerender" to trigger the effect pipeline. Watch the timeline animate through Render -> Commit -> Cleanup -> Effect.'
+      howToUse: 'Click the increment/decrement buttons in the playground. Look at the state value change, and see how the console logs the component rendering on every click.',
+      codeExample: `import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Add</button>
+    </div>
+  );
+}`
     },
     intermediate: {
-      overview: 'Understanding effect synchronization. React compares dependency items using Object.is. If any dependency changes, the cleanup function of the prior effect runs with old closure values, followed by the new effect running with new closure values.',
+      overview: 'State updates in React are asynchronous and batched. If you call `setCount(count + 1)` three times in a row within a single event click, the count will only increment by 1. To resolve this, pass a functional updater callback `setCount(prev => prev + 1)`.',
       keyPoints: [
-        'Stale Closures: If you omit dependencies, functions inside the effect will capture variable values from the render loop they were declared in.',
-        'Empty Array []: Only mounts once, cleanups on unmount. Stale state triggers if it references changing variables.',
-        'LayoutEffects: useLayoutEffect fires synchronously after DOM mutations but before paint. Good for measuring layouts.'
+        'Batching: React groups state updates inside event handlers to prevent multiple rendering frames.',
+        'Functional Updates: Always use state updater callbacks when your new state depends on the previous state.',
+        'Event Objects: SyntheticEvent wrappers represent native events in a cross-browser way.'
       ],
-      howToUse: 'Change the dependencies in the interactive input. Add/remove items and trigger state changes to see if a stale closure warning flashes.'
+      howToUse: 'Toggle between "Direct Update" and "Functional Update" modes. Click the "Add 3 Times" button and observe why count increases by 1 in direct mode vs 3 in functional mode.',
+      codeExample: `import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  
+  const addThree = () => {
+    // ❌ Direct: count is still 0 in this function scope
+    setCount(count + 1);
+    setCount(count + 1);
+    setCount(count + 1); // count becomes 1
+    
+    //  Functional: updates are queued sequentially
+    // setCount(prev => prev + 1);
+    // setCount(prev => prev + 1);
+    // setCount(prev => prev + 1); // count becomes 3
+  };
+}`
     },
     advanced: {
-      overview: 'Under the hood, effects are stored on the fiber object as a linked list (`updateQueue.lastEffect`). During render, React builds this queue. In the commit phase, it walks the queue to flush cleanups first (passive cleanups), then passive effect creators in a scheduler macro-task.',
+      overview: 'React matches state to the component\'s location in the virtual tree structure. If you render the same component in the same position, React preserves its state. If you change its key, or render a different component, the state is completely destroyed.',
       keyPoints: [
-        'Passive Effects: run after paint so they do not block the browser layout cycle.',
-        'Layout Effects: run synchronously in the mutation phase of commit, blocking screen update.',
-        'Double-Invoke: In React 18 React StrictMode mounts, unmounts, and remounts components to enforce clean cleanups.'
+        'State Resetting: Changing the key prop of a component forces React to reset its state.',
+        'Bailout: If you set state to the exact same value (Object.is check), React skips rendering the children.',
+        'Lazy Initialization: Pass a function to useState to run expensive setup logic once on mount: useState(() => computeInitialValue()).'
       ],
-      howToUse: 'Open the "Strict Mode Simulator". Watch the double-mount mount-unmount-mount flow and how it isolates memory leaks.'
+      howToUse: 'Click "Reset Component Key" in the playground. Note how the counter resets to its initial state because React sees it as a brand-new component instance.',
+      codeExample: `import { useState } from 'react';
+
+function App() {
+  const [userId, setUserId] = useState(1);
+  
+  // Changing key resets counter state automatically for new users
+  return <Counter key={userId} initial={0} />;
+}`
     },
     interview: {
-      question: 'Explain what a stale closure is in a React useEffect.',
-      answer: 'A stale closure occurs when a function inside an effect captures (closes over) variables (props or state) from a specific render instance. If that effect has an empty dependency array (`[]`), it will never run again. Thus, the closed-over function remains bound to the initial render scope, reading old variables indefinitely, even as newer renders updated those state values.',
-      mentalModel: 'Taking a picture of a whiteboard. Even if someone writes new notes on the physical board (state change), looking at the photograph (stale closure) will only show you the old notes.'
+      question: 'Why does logging a state variable immediately after calling its setter function show the old value?',
+      answer: 'State setters do not change the state variable in the currently executing JavaScript code block. Instead, they schedule a state update with React and request a new render. The state variable behaves like a snapshot; its value is fixed within a single render cycle execution. When the component function runs again (the next render snapshot), the state variable is populated with the updated value.',
+      mentalModel: 'State is like ordering a new painting for your wall. Calling the setter function is ordering the painting online. Looking at your wall immediately after placing the order will still show the old painting, because it hasn’t arrived yet.',
+      codeExample: `function Counter() {
+  const [count, setCount] = useState(0);
+  
+  const handleClick = () => {
+    setCount(count + 1);
+    console.log(count); // Prints "0" instead of "1"!
+  };
+}`
     }
   },
-  'event-loop': {
-    title: 'The JS Event Loop & Rendering',
-    subtitle: 'Call Stack, Microtasks, Macrotasks, and Reflows',
+  'effect': {
+    title: '5. Side Effects (useEffect)',
+    subtitle: 'Synchronizing with External Systems and Lifecycle Control',
     beginner: {
-      overview: 'JavaScript can only do one thing at a time. The Event Loop coordinates executing your code, handling events (like clicks), and updating screen visuals.',
+      overview: 'Side effects are operations that interact with systems outside of React, such as APIs, timers, or window events. The `useEffect` hook lets you run this side effect code *after* your component has rendered on the screen.',
       keyPoints: [
-        'Call Stack: Where code currently running is placed.',
-        'Task Queues: Messages waiting to run (timers, events).',
-        'Microtask Queue: High priority actions (Promises, async/await).'
+        'No Array: Runs on every render (mount and update).',
+        'Empty Array []: Runs exactly once when the component mounts.',
+        'Dependency Array [dep]: Runs on mount, and whenever the values inside dep change.'
       ],
-      howToUse: 'Select a script and click "Run Step-by-Step". Watch code enter the stack, trigger Web APIs, enter queues, and block rendering.'
+      howToUse: 'Type in the box to fetch user profiles. Look at the console logs to see the lifecycle of the effect: Trigger Render -> Execute Cleanup -> Run Effect.',
+      codeExample: `import { useState, useEffect } from 'react';
+
+function UserLoader() {
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    fetch('https://api.example.com/user')
+      .then(res => res.json())
+      .then(data => setUser(data));
+  }, []); // Run only on mount
+}`
     },
     intermediate: {
-      overview: 'JavaScript schedules execution using macrotasks (setTimeout, events) and microtasks (Promise.then, queueMicrotask). The event loop prioritizes the microtask queue, draining it completely before processing the next macrotask or performing layouts.',
+      overview: 'Effects often require cleaning up resources (like canceling timers, unsubscribing from sockets, or removing event listeners) to prevent memory leaks. You do this by returning a cleanup function from your effect.',
       keyPoints: [
-        'Microtask priority: Promises can starve the rendering thread if they constantly queue more microtasks.',
-        'Render Phase: Browser aims to update at 60Hz (16.6ms). Layout, Style, and Paint occur between tasks if flags are dirty.',
-        'Call Stack Block: Long-running code locks the main thread, freezing the UI and preventing user interactions.'
+        'Cleanup Trigger: React runs the cleanup function *before* running the effect again, and when the component unmounts.',
+        'Object.is Comparison: React compares dependency array items using strict equality to decide whether to re-run.',
+        'Strict Mode: React 18 mounts, unmounts, and remounts components in development to ensure cleanups are robust.'
       ],
-      howToUse: 'Run the "Microtask Starvation" example. Look at the call stack, queue sizes, and rendering loop block meter.'
+      howToUse: 'Click the "Toggle Mount" button to see the Timer component mount and unmount. Observe how the intervals are cleared properly, preventing timer overlap.',
+      codeExample: `import { useState, useEffect } from 'react';
+
+function Timer() {
+  const [seconds, setSeconds] = useState(0);
+  
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSeconds(s => s + 1);
+    }, 1000);
+    
+    // Cleanup: Stop timer when component disappears
+    return () => clearInterval(id);
+  }, []); 
+}`
     },
     advanced: {
-      overview: 'Event loop ticks: 1) Pop stack until empty, 2) Run all microtasks until microtask queue is empty (even if new microtasks are added during execution), 3) Evaluate rendering update flag. If rendering frame is open, process animation callbacks (requestAnimationFrame), calculate Recalculate Style, Layout, and Paint. 4) Run the oldest macrotask.',
+      overview: 'Avoid using useEffect to synchronize state derived from props or local variables. Calculating data during rendering is much faster and prevents extra rendering loops. Furthermore, use AbortControllers to cancel in-flight API requests to solve network race conditions.',
       keyPoints: [
-        'requestAnimationFrame: Executes right before repaint, making it ideal for smooth animations.',
-        'requestIdleCallback: Executes during the browser’s idle periods at the end of a frame.',
-        'Worker threads: Offload intensive computations to Web Workers to prevent blocking event loop.'
+        'Race Conditions: Rapid requests can resolve out of order. Cancel older requests using AbortController.',
+        'Derived State: If a value can be computed from props/state, do not put it in state and sync with useEffect.',
+        'Passive Effects: useEffect is deferred until after browser paint. useLayoutEffect fires synchronously before paint.'
       ],
-      howToUse: 'Inspect the frame analyzer. Observe how long-running tasks cause dropped frames, visual lag, and high input latency.'
+      howToUse: 'Select the "Race Condition" preset. Click requests rapidly and observe how the AbortController automatically aborts older requests, avoiding incorrect UI rendering.',
+      codeExample: `useEffect(() => {
+  const controller = new AbortController();
+  
+  fetch(\`/api/user/\${id}\`, { signal: controller.signal })
+    .then(res => res.json())
+    .then(data => setData(data));
+    
+  return () => {
+    // Abort request if id changes before fetch finishes
+    controller.abort();
+  };
+}, [id]);`
     },
     interview: {
-      question: 'What is the execution order of Promises, setTimeouts, and requestAnimationFrames?',
-      answer: 'When a call stack clears: 1) All pending microtasks (Promises) run immediately, draining the queue. 2) If a browser frame is active, requestAnimationFrame (rAF) callbacks execute. 3) The browser recalculates layout and paints. 4) Macrotasks (like setTimeout callbacks) run in a subsequent tick of the event loop.',
-      mentalModel: 'Call stack is the active desk. Microtasks are high-priority post-it notes you must solve before leaving. Repaint is cleaning the room. Macrotasks are appointments scheduled for tomorrow.'
+      question: 'What is a cleanup function in useEffect and why is it essential?',
+      answer: 'A cleanup function is the function returned by the useEffect callback. It is used to dismantle side effects (like subscriptions, web sockets, intervals, or event listeners) set up during the effect. If not cleaned up, the listener remains in memory, continuing to execute and reference unmounted component scopes. This leads to memory leaks, state update warnings on unmounted components, and duplicate triggers.',
+      mentalModel: 'If you rent a conference room and write notes on the whiteboard, you must erase the whiteboard (cleanup) before leaving, so that the next group doesn\'t read your notes or run out of workspace.',
+      codeExample: `useEffect(() => {
+  const handleScroll = () => console.log(window.scrollY);
+  window.addEventListener('scroll', handleScroll);
+  
+  // Cleanup: clean up scroll listener before running next time
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);`
     }
   },
-  'http-lifecycle': {
-    title: 'API Pipeline & Optimization',
-    subtitle: 'Debounce, Throttle, and Network Lifecycles',
+  'custom-hooks': {
+    title: '6. Custom Hooks',
+    subtitle: 'Reusability, Abstracting Logic, and State Isolation',
     beginner: {
-      overview: 'Networking is the pipeline connecting your app to a server. Managing requests properly stops your application from sending thousands of unnecessary queries.',
+      overview: 'Custom Hooks are regular JavaScript functions whose names start with "use". They let you extract component logic (like state variables and effects) into reusable functions that you can share across multiple components.',
       keyPoints: [
-        'Debounce: Waits for the user to stop typing before sending a search request.',
-        'Throttle: Limits a continuous action (like scrolling) to run once every X milliseconds.',
-        'CORS: Security mechanism stopping malicious websites from requesting your server data.'
+        'Naming Rule: Must start with "use" (e.g., useToggle, useFetch) so React can check Rules of Hooks.',
+        'Reusability: Extract fetch logic or state configurations to keep components small and readable.',
+        'Isolated State: Every time you call a custom hook, the state variables inside it are completely isolated.'
       ],
-      howToUse: 'Type into the input box to trigger search actions. Watch the API pipeline light up with debounce/throttle active.'
+      howToUse: 'Toggle the switch buttons for Component A and Component B. Notice how they both use the same custom hook but toggle independently, proving that state is isolated.',
+      codeExample: `import { useState } from 'react';
+
+// Custom Hook definition
+function useToggle(initialValue = false) {
+  const [value, setValue] = useState(initialValue);
+  const toggle = () => setValue(v => !v);
+  return [value, toggle];
+}
+
+// Component using custom hook
+function ToggleButton() {
+  const [isOn, toggle] = useToggle();
+  return <button onClick={toggle}>{isOn ? "ON" : "OFF"}</button>;
+}`
     },
     intermediate: {
-      overview: 'Debounce groups multiple sequential events into a single execution, resetting the timer with each trigger. Throttle locks the event executor, allowing at most one call in a given window.',
+      overview: 'Custom Hooks are excellent for abstracting browser events, form handling, or API interactions. Inside a custom hook, you can call other standard hooks (like useState, useEffect, useRef) and return whatever data/functions your components need.',
       keyPoints: [
-        'Debounce is ideal for search auto-completes and size resizing recalculations.',
-        'Throttle is ideal for infinite scroll, scroll tracking, drag-and-drop, and throttle game triggers.',
-        'CORS Preflight: Browser sends an OPTIONS request to check permissions before firing write actions.'
+        'Composition: Custom hooks combine standard hooks to form a specialized tool.',
+        'Return Value: Can return arrays, objects, values, or functions—whatever is most ergonomic.',
+        'Encapsulation: Components consuming the hook do not need to know its internal state configurations.'
       ],
-      howToUse: 'Toggle between Debounce and Throttle settings. Trigger rapid input keys and view the network logs indicating total API calls saved.'
+      howToUse: 'Type values into the fields. Look at how the form state custom hook updates values in real-time while abstracting event.target.value lookups.',
+      codeExample: `import { useState } from 'react';
+
+// Custom Hook to manage form inputs
+function useFormFields(initialValues) {
+  const [fields, setValues] = useState(initialValues);
+  
+  const handleChange = (event) => {
+    setValues({
+      ...fields,
+      [event.target.name]: event.target.value
+    });
+  };
+  
+  return [fields, handleChange];
+}`
     },
     advanced: {
-      overview: 'Request race conditions: parallel API calls might arrive out of order, overriding current UI states with stale data. Solve this using cleanups in useEffect to toggle an active boolean, or cancel outstanding network requests using AbortController.',
+      overview: 'Because custom hooks run on every render of the consuming component, return objects or arrays should be memoized if they are used as dependencies in useEffect or passed to memoized children. Wrap hook callbacks with useCallback and returned objects with useMemo.',
       keyPoints: [
-        'AbortController: Passes an abort signal to fetch, cancelling active TCP connections.',
-        'Idempotency: GET operations should be safe to repeat. POST/PUT require validation to avoid duplication.',
-        'CORS Headers: Access-Control-Allow-Origin checks origin, method, and headers requested.'
+        'Hook Chains: If a custom hook returns a callback, wrap it in useCallback so it remains reference-stable.',
+        'Rules of Hooks: Custom hooks must follow the same rules: only call at the top level, only from React components or other hooks.',
+        'State syncing: Bridging local hook state to global stores when scaling applications.'
       ],
-      howToUse: 'Select the "Race Condition Demo". Click fetch multiple times rapidly. Observe how the final rendering output changes to wrong states without AbortControllers.'
+      howToUse: 'Toggle the useCallback switch in the hook example. Watch how the downstream effect stops firing repeatedly on unrelated changes because the callback reference is stabilized.',
+      codeExample: `import { useState, useCallback, useMemo } from 'react';
+
+function useCounter(step = 1) {
+  const [count, setCount] = useState(0);
+  
+  const increment = useCallback(() => {
+    setCount(c => c + step);
+  }, [step]);
+  
+  // Return memoized object to prevent reference changes
+  return useMemo(() => ({ count, increment }), [count, increment]);
+}`
     },
     interview: {
-      question: 'How do you prevent race conditions when fetching data in a useEffect?',
-      answer: 'To prevent race conditions, use a local cleanup flag or an AbortController. By maintaining an `active` boolean inside the effect and setting it to `false` during the cleanup, you ensure that if a subsequent render fires a new request, the response of the prior request will be ignored when it resolves. Alternatively, call `controller.abort()` on an AbortController signal.',
-      mentalModel: 'Ordering two packages online. When you cancel the first order, you throw away its contents when it arrives, preventing it from cluttering your shelf.'
+      question: 'If two components call the same custom hook, do they share the state variables created inside it?',
+      answer: 'No. Calling a custom hook is equivalent to copy-pasting the state and effect declarations directly into that component. React creates entirely new, isolated hook memory slots for each component instance. To share state between components, you must lift the state up to a common parent component, use the Context API, or implement a global store like Zustand.',
+      mentalModel: 'Custom hooks are like cake recipes. If two bakers use the same recipe, they both get separate cakes. Decorating or slicing the cake in kitchen A does not change the cake in kitchen B.',
+      codeExample: `// Component A
+const [valueA, toggleA] = useToggle();
+
+// Component B
+const [valueB, toggleB] = useToggle();
+// Toggling valueA has zero effect on valueB.`
     }
   },
-  'rerender-heatmap': {
-    title: 'Rerender Profiler & Optimization',
-    subtitle: 'Memoization, React.memo, useMemo, and useCallback',
+  'context': {
+    title: '7. Context API',
+    subtitle: 'Avoiding Prop Drilling and Managing App-Wide Theme/Auth Settings',
     beginner: {
-      overview: 'When a component state changes, React updates that component and all children inside it. If you have many children, this can slow down your app.',
+      overview: 'Prop drilling occurs when you have to pass data through multiple layers of components just to reach a deeply nested child. The Context API solves this by allowing a parent component to broadcast data to *any* component below it directly, bypassing intermediate components.',
       keyPoints: [
-        'Rerenders happen when props or state change, or parent rerenders.',
-        'React.memo tells React to skip rendering a child if its props did not change.',
-        'useMemo caches expensive math values.'
+        'Provider: Wraps child components and supplies the value: <Context.Provider value={data}>.',
+        'Consumer: A nested child component consumes the data using the useContext hook.',
+        'Bypassing: Intermediate components do not need to read, write, or pass the prop.'
       ],
-      howToUse: 'Click component nodes in the tree to trigger state updates. Check the heatmap overlay colors (red = heavy rerendering).'
+      howToUse: 'Click the "Toggle Theme" button in the Profile card. Watch the background colors change, and observe that intermediate layout elements are not passed any theme props.',
+      codeExample: `import { createContext, useContext, useState } from 'react';
+
+const ThemeContext = createContext();
+
+function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <Layout />
+    </ThemeContext.Provider>
+  );
+}
+
+function Layout() {
+  return <ProfileCard />; // No props drilled here!
+}
+
+function ProfileCard() {
+  const theme = useContext(ThemeContext);
+  return <div className={theme}>User Profile</div>;
+}`
     },
     intermediate: {
-      overview: 'React triggers component renders cascades downwards. Even if a child component does not use changed props, it will render anyway unless optimized. Caching components is achieved with React.memo, which performs a shallow comparison of props.',
+      overview: 'You can pass state variables and update functions inside the Context Provider. This allows deeply nested components to trigger global updates, like changing the user language, logging out, or updating shopping carts.',
       keyPoints: [
-        'Referential Equality: Passing functions `() => {}` or objects `{}` to child components breaks React.memo because they get fresh addresses on every render.',
-        'useCallback: Caches the callback function reference itself.',
-        'useMemo: Caches the calculated output of a function, updating only when dependencies change.'
+        'Dynamic Value: Pass objects containing both state and setter functions: value={{ user, setUser }}.',
+        'Decoupling: Child components trigger updates in parent scopes without layout dependencies.',
+        'Custom Provider: Package Context declaration and provider component inside a single module file.'
       ],
-      howToUse: 'Turn on the "Enable Memoization" switches for different sub-nodes. Rerun updates and watch parent updates get blocked at child levels.'
+      howToUse: 'Use the Language Selector inside the sub-profile widget. See how changing the language in the child updates the text displayed on the main header.',
+      codeExample: `import { createContext, useState } from 'react';
+
+export const UserContext = createContext();
+
+export function UserProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const login = (name) => setUser({ name });
+  
+  return (
+    <UserContext.Provider value={{ user, login }}>
+      {children}
+    </UserContext.Provider>
+  );
+}`
     },
     advanced: {
-      overview: 'Shallow comparison details: React.memo compares old and new props with Object.is. Custom comparators can be passed. Over-using useMemo/useCallback adds memory allocation overhead and dependency array checks, which can be costlier than simple renders for cheap elements.',
+      overview: 'Context is not suitable for high-frequency state updates. When a provider value updates, *all* components consuming that context are forced to re-render, even if they only read a slice of the value that did not change. Prevent this by breaking context into multiple small contexts or memoizing children.',
       keyPoints: [
-        'Context Re-renders: If a component consumes Context, it bypasses React.memo when the context value changes.',
-        'Profiler metrics: Actual duration measures render time, base duration measures layout tree build costs.',
-        'Optimization rule: First restructure JSX (e.g. lift state up or pass children as props) before applying memo hooks.'
+        'Render Cascade: Context updates bypass React.memo checks on consumers, causing full rendering updates.',
+        'Split Context: Separate state value and state updater functions into distinct providers: StateContext and DispatchContext.',
+        'useMemo value: Always memoize Context provider objects to avoid re-renders caused by new object literals.'
       ],
-      howToUse: 'Review the Profiler console output. Check Render Count and Base execution duration to identify bottlenecks.'
+      howToUse: 'Toggle between "Monolithic Context" and "Split Context" modes. Look at the re-render heatmap colors to see how Split Context blocks redundant renders.',
+      codeExample: `import { createContext, useState, useMemo } from 'react';
+
+const ThemeContext = createContext();
+
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('dark');
+  
+  // Memoize the value object so its reference remains stable
+  const value = useMemo(() => ({ theme, setTheme }), [theme]);
+  
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}`
     },
     interview: {
-      question: 'Does wrapping every function in useCallback always improve performance?',
-      answer: 'No. Wrapping everything in useCallback can be counter-productive. A callback hook has execution costs: declaring dependencies, allocating hook array memory, and performing shallow comparison checks on every render. If the child receiving the function is not optimized with React.memo, it will rerender anyway, making the hook checks a useless overhead.',
-      mentalModel: 'Paying a security team to inspect a document before showing it to a colleague, even though the colleague doesn’t care if it changed and will read it anyway.'
-    }
-  },
-  'state-flow': {
-    title: 'State Architecture Explorer',
-    subtitle: 'Context API, Zustand, and Prop Drilling Simulations',
-    beginner: {
-      overview: 'State management is how components share data. Prop drilling passes data down multiple layers, while Context and Zustand act as central warehouses.',
-      keyPoints: [
-        'Prop Drilling: Passing data through components that do not need it.',
-        'Context API: React built-in data broadcast.',
-        'Zustand: A simple store that updates only components that read the data.'
-      ],
-      howToUse: 'Click "Increment Store" and observe how data propagates down the nodes. Highlighted lines indicate active rendering paths.'
-    },
-    intermediate: {
-      overview: 'Context API is designed for low-frequency updates (themes, user auth). When a Context provider value changes, all consumers rerender, regardless of React.memo. Zustand uses selectors to subscribe to slice updates, bypassing React renders for unrelated nodes.',
-      keyPoints: [
-        'Drilling pain: Hard to maintain, changes require updating all intermediate levels.',
-        'Context limitation: Lacks fine-grained selector mechanics out of the box.',
-        'Zustand selectors: `const value = useStore(s => s.value)` avoids rendering if other store values change.'
-      ],
-      howToUse: 'Toggle between "Prop Drilling", "Context API", and "Zustand Store" views. Run update cycles and trace render paths.'
-    },
-    advanced: {
-      overview: 'Zustand bypasses React state sync for state writes, managing a list of subscribers in vanilla JS. When state changes, it notifies only components subscribing to changed slices. Context updates are executed via Reacts fiber commit loop, traversing children for context consumers, which can trigger massive render trees.',
-      keyPoints: [
-        'Store selectors: React 18 uses `useSyncExternalStore` internally in Zustand to prevent tearing.',
-        'State slicing: Returning objects from selectors without custom comparators can cause re-renders.',
-        'Modular stores: Creating micro-stores vs one monolithic store. Zustand supports writing multiple clean stores.'
-      ],
-      howToUse: 'Open the store explorer. Mutate deep keys and inspect subscriber callbacks fired.'
-    },
-    interview: {
-      question: 'Why is Context API not suitable as a high-performance state manager?',
-      answer: 'Context API is not a state manager but a dependency injection mechanism. When a Context provider receives a new value, all components that consume the context are forced to re-render. There is no selector mechanism to subscribe to a slice of the value. If you store an object in Context, a component reading only `obj.a` will re-render when `obj.b` updates, causing massive performance problems in high-frequency update apps.',
-      mentalModel: 'Context is a PA speaker system. If the manager makes an announcement, everyone in the building has to pause and listen, even if the announcement is only for one person. Zustand is a text message sent directly to that single person.'
+      question: 'Why is the Context API not a replacement for full state management tools like Redux or Zustand?',
+      answer: 'Context API is a dependency injection tool, not a state manager. It does not handle where state lives or how it changes; it merely transports state that already exists (e.g. from useState) down the tree. Crucially, Context lacks fine-grained updates: it does not support selectors. If a provider value is an object, any consumer component will re-render whenever *any* property of that object updates, causing performance issues in massive systems.',
+      mentalModel: 'Context is like a shared public television in a lounge. If anyone changes the channel, everyone in the room is forced to watch the new channel. A state manager like Zustand is like handing everyone individual smartphones where they can subscribe to exactly the notifications they want.',
+      codeExample: `// With Context, if user.age changes, components only reading user.name still re-render:
+const { name } = useContext(UserContext); // Re-renders!
+
+// With Zustand selectors, the component only re-renders if the selected name slice changes:
+const name = useStore(state => state.user.name); // Skips re-render if only age changes!`
     }
   }
 };

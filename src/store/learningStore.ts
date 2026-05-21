@@ -2,14 +2,13 @@ import { create } from 'zustand';
 
 export type SectionType = 
   | 'roadmap'
-  | 'fundamentals' 
-  | 'internals' 
-  | 'hooks' 
-  | 'browser' 
-  | 'networking' 
-  | 'performance' 
+  | 'intro' 
+  | 'jsx' 
+  | 'props' 
   | 'state' 
-  | 'challenges';
+  | 'effect' 
+  | 'custom-hooks' 
+  | 'context';
 
 export type LearningMode = 'beginner' | 'intermediate' | 'advanced' | 'interview';
 
@@ -61,7 +60,7 @@ export const useLearningStore = create<LearningState>((set) => ({
   logs: [
     {
       id: 'init',
-      text: 'EngineLab Simulator v1.0.0 initialized. Welcome to the React Learning Pathway!',
+      text: 'React Learning Sandbox initialized. Start your journey!',
       type: 'system',
       timestamp: new Date().toLocaleTimeString(),
     }
@@ -72,14 +71,13 @@ export const useLearningStore = create<LearningState>((set) => ({
     if (!lab) {
       switch (section) {
         case 'roadmap': lab = 'roadmap'; break;
-        case 'fundamentals': lab = 'rendering-flow'; break;
-        case 'internals': lab = 'vdom-diff'; break;
-        case 'hooks': lab = 'effect-timeline'; break;
-        case 'browser': lab = 'event-loop'; break;
-        case 'networking': lab = 'http-lifecycle'; break;
-        case 'performance': lab = 'rerender-heatmap'; break;
-        case 'state': lab = 'state-flow'; break;
-        case 'challenges': lab = 'challenges'; break;
+        case 'intro': lab = 'intro'; break;
+        case 'jsx': lab = 'jsx'; break;
+        case 'props': lab = 'props'; break;
+        case 'state': lab = 'state'; break;
+        case 'effect': lab = 'effect'; break;
+        case 'custom-hooks': lab = 'custom-hooks'; break;
+        case 'context': lab = 'context'; break;
         default: lab = 'roadmap';
       }
     }
@@ -87,14 +85,13 @@ export const useLearningStore = create<LearningState>((set) => ({
     // Auto-log section navigation
     const sectionNames: Record<SectionType, string> = {
       roadmap: 'Pathway Roadmap Map',
-      fundamentals: 'React Fundamentals',
-      internals: 'React Internals & Fiber',
-      hooks: 'Hooks Deep Dive',
-      browser: 'Browser Internals',
-      networking: 'API & Networking',
-      performance: 'Performance Engineering',
-      state: 'State Management',
-      challenges: 'Debugging Playground'
+      intro: '1. Introduction to React',
+      jsx: '2. JSX Fundamentals',
+      props: '3. Components & Props',
+      state: '4. State & Events',
+      effect: '5. Side Effects (useEffect)',
+      'custom-hooks': '6. Custom Hooks',
+      context: '7. Context API'
     };
 
     const newLog: ConsoleLog = {

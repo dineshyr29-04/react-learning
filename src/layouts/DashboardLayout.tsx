@@ -1,7 +1,9 @@
+import React from 'react';
 import { useLearningStore } from '../store/learningStore';
 import type { SectionType, LearningMode } from '../store/learningStore';
 import { theoryData } from '../data/theoryData';
-import { TerminalConsole } from '../components/TerminalConsole';
+import { PlaygroundSandbox } from '../components/PlaygroundSandbox';
+import { PathwayRoadmap } from '../features/roadmap/PathwayRoadmap';
 
 // Icons
 import { 
@@ -9,18 +11,6 @@ import {
   ChevronRight, Award, GraduationCap, BarChart2, BookOpen, Terminal,
   CheckCircle2, Compass
 } from 'lucide-react';
-
-// Visualizer imports
-import { RenderingFlow } from '../features/react-fundamentals/RenderingFlow';
-import { VirtualDomDiffing } from '../features/react-internals/VirtualDomDiffing';
-import { ReactFiberVisualizer } from '../features/react-internals/ReactFiberVisualizer';
-import { EffectTimeline } from '../features/hooks-deep-dive/EffectTimeline';
-import { EventLoopSimulator } from '../features/browser-internals/EventLoopSimulator';
-import { NetworkRequestSimulator } from '../features/api-networking/NetworkRequestSimulator';
-import { RerenderHeatmap } from '../features/performance/RerenderHeatmap';
-import { StateFlowSimulator } from '../features/state-management/StateFlowSimulator';
-import { ChallengeSandbox } from '../features/debugging-playground/ChallengeSandbox';
-import { PathwayRoadmap } from '../features/roadmap/PathwayRoadmap';
 
 interface NavGroup {
   sectionId: SectionType;
@@ -31,55 +21,46 @@ interface NavGroup {
 
 const NAVIGATION_GROUPS: NavGroup[] = [
   {
-    sectionId: 'fundamentals',
-    title: 'React Fundamentals',
-    icon: <GraduationCap size={16} />,
-    labs: [{ id: 'rendering-flow', name: 'Render Pipeline' }]
+    sectionId: 'intro',
+    title: '1. Introduction',
+    icon: <GraduationCap size={15} />,
+    labs: [{ id: 'intro', name: 'Virtual DOM' }]
   },
   {
-    sectionId: 'internals',
-    title: 'React Internals',
-    icon: <Cpu size={16} />,
-    labs: [
-      { id: 'vdom-diff', name: 'Virtual DOM Diffing' },
-      { id: 'fiber-explorer', name: 'Fiber Work Loop' }
-    ]
+    sectionId: 'jsx',
+    title: '2. JSX Syntax',
+    icon: <Terminal size={15} />,
+    labs: [{ id: 'jsx', name: 'JSX Compilation' }]
   },
   {
-    sectionId: 'hooks',
-    title: 'Hooks Deep Dive',
-    icon: <Layers size={16} />,
-    labs: [{ id: 'effect-timeline', name: 'useEffect Lifecycle' }]
-  },
-  {
-    sectionId: 'browser',
-    title: 'Browser Internals',
-    icon: <Terminal size={16} />,
-    labs: [{ id: 'event-loop', name: 'Event Loop Simulator' }]
-  },
-  {
-    sectionId: 'networking',
-    title: 'API & Networking',
-    icon: <Globe size={16} />,
-    labs: [{ id: 'http-lifecycle', name: 'Debounce / Throttle' }]
-  },
-  {
-    sectionId: 'performance',
-    title: 'Performance Eng',
-    icon: <Activity size={16} />,
-    labs: [{ id: 'rerender-heatmap', name: 'Rerender Heatmap' }]
+    sectionId: 'props',
+    title: '3. Components & Props',
+    icon: <Layers size={15} />,
+    labs: [{ id: 'props', name: 'Props Data Flow' }]
   },
   {
     sectionId: 'state',
-    title: 'State Management',
-    icon: <Database size={16} />,
-    labs: [{ id: 'state-flow', name: 'State Flow Explorer' }]
+    title: '4. Local State',
+    icon: <Activity size={15} />,
+    labs: [{ id: 'state', name: 'useState Hook' }]
   },
   {
-    sectionId: 'challenges',
-    title: 'Debugging Playground',
-    icon: <ShieldAlert size={16} />,
-    labs: [{ id: 'challenges', name: 'Playground Mission' }]
+    sectionId: 'effect',
+    title: '5. Side Effects',
+    icon: <Database size={15} />,
+    labs: [{ id: 'effect', name: 'useEffect Sync' }]
+  },
+  {
+    sectionId: 'custom-hooks',
+    title: '6. Custom Hooks',
+    icon: <Compass size={15} />,
+    labs: [{ id: 'custom-hooks', name: 'useToggle Hook' }]
+  },
+  {
+    sectionId: 'context',
+    title: '7. Context API',
+    icon: <Globe size={15} />,
+    labs: [{ id: 'context', name: 'Global Context' }]
   }
 ];
 
@@ -87,7 +68,6 @@ export const DashboardLayout: React.FC = () => {
   const { 
     selectedLab, 
     learningMode, 
-    solvedChallenges,
     completedModules,
     xp,
     setSection, 
@@ -98,19 +78,10 @@ export const DashboardLayout: React.FC = () => {
   const activeTheory = theoryData[selectedLab];
 
   const renderActiveLab = () => {
-    switch (selectedLab) {
-      case 'roadmap': return <PathwayRoadmap />;
-      case 'rendering-flow': return <RenderingFlow />;
-      case 'vdom-diff': return <VirtualDomDiffing />;
-      case 'fiber-explorer': return <ReactFiberVisualizer />;
-      case 'effect-timeline': return <EffectTimeline />;
-      case 'event-loop': return <EventLoopSimulator />;
-      case 'http-lifecycle': return <NetworkRequestSimulator />;
-      case 'rerender-heatmap': return <RerenderHeatmap />;
-      case 'state-flow': return <StateFlowSimulator />;
-      case 'challenges': return <ChallengeSandbox />;
-      default: return <PathwayRoadmap />;
+    if (selectedLab === 'roadmap') {
+      return <PathwayRoadmap />;
     }
+    return <PlaygroundSandbox labId={selectedLab} />;
   };
 
   const getDifficultyColor = (mode: LearningMode) => {
@@ -125,18 +96,15 @@ export const DashboardLayout: React.FC = () => {
   // Level mapping for short HUD display
   const getRankHUD = (userXp: number) => {
     if (userXp <= 200) return { level: 1, title: 'Novice' };
-    if (userXp <= 500) return { level: 2, title: 'Apprentice' };
-    if (userXp <= 900) return { level: 3, title: 'Explorer' };
-    if (userXp <= 1400) return { level: 4, title: 'Engineer' };
+    if (userXp <= 400) return { level: 2, title: 'Squire' };
+    if (userXp <= 600) return { level: 3, title: 'Apprentice' };
+    if (userXp <= 700) return { level: 4, title: 'Engineer' };
     return { level: 5, title: 'Architect' };
   };
   const rankHUD = getRankHUD(xp);
 
-  const totalModulesCount = ROADMAP_NODES_COUNT();
-  function ROADMAP_NODES_COUNT() {
-    return 9; // Total 9 topics
-  }
-  const currentCompletedCount = completedModules.length + (solvedChallenges.length === 5 ? 1 : 0);
+  const totalModulesCount = 7;
+  const currentCompletedCount = completedModules.length;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
@@ -149,7 +117,7 @@ export const DashboardLayout: React.FC = () => {
           <div className="w-7 h-7 rounded-lg bg-primary/20 border border-primary/50 flex items-center justify-center">
             <Cpu size={16} className="text-primary animate-pulse-glow" />
           </div>
-          <span className="font-bold text-sm tracking-wider text-zinc-100">ENGINELAB</span>
+          <span className="font-bold text-sm tracking-wider text-zinc-100">REACT LABS</span>
         </div>
 
         {/* Pathway Roadmap Top-Level Button */}
@@ -182,9 +150,7 @@ export const DashboardLayout: React.FC = () => {
               <div className="space-y-0.5">
                 {group.labs.map((lab) => {
                   const isSelected = selectedLab === lab.id;
-                  const isCompleted = lab.id === 'challenges' 
-                    ? solvedChallenges.length === 5 
-                    : completedModules.includes(lab.id);
+                  const isCompleted = completedModules.includes(lab.id);
                   return (
                     <button
                       key={lab.id}
@@ -352,29 +318,27 @@ export const DashboardLayout: React.FC = () => {
                 <hr className="border-border select-none" />
 
                 {/* Mark as Completed Button */}
-                {selectedLab !== 'challenges' && (
-                  <div className="pt-2 select-none">
-                    <button
-                      onClick={() => completeModule(selectedLab)}
-                      disabled={completedModules.includes(selectedLab)}
-                      className={`w-full py-2.5 rounded-lg border font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${
-                        completedModules.includes(selectedLab)
-                          ? 'bg-success/15 border-success/35 text-success cursor-default'
-                          : 'bg-primary hover:bg-primary-hover text-white border-transparent'
-                      }`}
-                    >
-                      {completedModules.includes(selectedLab) ? (
-                        <>
-                          <CheckCircle2 size={13} /> Completed (+100 XP)
-                        </>
-                      ) : (
-                        <>
-                          <Award size={13} /> Mark Completed (+100 XP)
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
+                <div className="pt-2 select-none">
+                  <button
+                    onClick={() => completeModule(selectedLab)}
+                    disabled={completedModules.includes(selectedLab)}
+                    className={`w-full py-2.5 rounded-lg border font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${
+                      completedModules.includes(selectedLab)
+                        ? 'bg-success/15 border-success/35 text-success cursor-default'
+                        : 'bg-primary hover:bg-primary-hover text-white border-transparent'
+                    }`}
+                  >
+                    {completedModules.includes(selectedLab) ? (
+                      <>
+                        <CheckCircle2 size={13} /> Completed (+100 XP)
+                      </>
+                    ) : (
+                      <>
+                        <Award size={13} /> Mark Completed (+100 XP)
+                      </>
+                    )}
+                  </button>
+                </div>
 
               </div>
 
@@ -382,19 +346,12 @@ export const DashboardLayout: React.FC = () => {
           )}
 
           {/* Right panel: Active Visualizer sandbox & console (9 cols or 12 cols if roadmap) */}
-          <div className={`${selectedLab === 'roadmap' ? 'xl:col-span-12' : 'xl:col-span-9'} flex flex-col overflow-hidden p-4 gap-4 bg-zinc-950/20`}>
+          <div className={`${selectedLab === 'roadmap' ? 'xl:col-span-12' : 'xl:col-span-9'} flex flex-col overflow-hidden p-4 bg-zinc-950/20`}>
             
             {/* Main simulation workspace */}
             <div className="flex-1 overflow-y-auto min-h-[300px]">
               {renderActiveLab()}
             </div>
-
-            {/* Bottom Console logs output panel */}
-            {selectedLab !== 'roadmap' && (
-              <div className="h-44 shrink-0">
-                <TerminalConsole />
-              </div>
-            )}
 
           </div>
 

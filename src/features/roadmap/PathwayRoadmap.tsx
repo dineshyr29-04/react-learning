@@ -22,94 +22,74 @@ interface RoadmapNode {
 
 const ROADMAP_NODES: RoadmapNode[] = [
   {
-    id: 'rendering-flow',
-    title: 'React Rendering Pipeline',
-    subtitle: 'Mount, Rerender & Commits',
+    id: 'intro',
+    title: '1. Introduction to React',
+    subtitle: 'Declarative Programming & VDOM',
     difficulty: 'Beginner',
-    category: 'Fundamentals',
-    sectionId: 'fundamentals',
-    description: 'Learn the core 3-step rendering flow of React: Trigger, Render, and Commit.',
+    category: 'Architecture',
+    sectionId: 'intro',
+    description: 'Learn why React uses a Declarative syntax and how the Virtual DOM minimizes direct updates to the screen.',
     xpReward: 100
   },
   {
-    id: 'vdom-diff',
-    title: 'Virtual DOM Diffing',
-    subtitle: 'Heuristic O(n) Diffing',
+    id: 'jsx',
+    title: '2. JSX Fundamentals',
+    subtitle: 'HTML in JavaScript Compilation',
+    difficulty: 'Beginner',
+    category: 'Syntax',
+    sectionId: 'jsx',
+    description: 'Deconstruct how tags transpile into React.createElement calls and learn embedding dynamic JS expressions.',
+    xpReward: 100
+  },
+  {
+    id: 'props',
+    title: '3. Components & Props',
+    subtitle: 'Reusability & Immutable Inputs',
+    difficulty: 'Beginner',
+    category: 'Data Flow',
+    sectionId: 'props',
+    description: 'Master component-driven design. Pass read-only parameters down the tree and send updates back up via callbacks.',
+    xpReward: 100
+  },
+  {
+    id: 'state',
+    title: '4. State & Events',
+    subtitle: 'useState snapshots and batching',
     difficulty: 'Intermediate',
-    category: 'Internals',
-    sectionId: 'internals',
-    description: 'Understand reconciliation heuristics, node replacements, and list keys.',
-    xpReward: 100
-  },
-  {
-    id: 'fiber-explorer',
-    title: 'React Fiber Architecture',
-    subtitle: 'Double Buffering work loop',
-    difficulty: 'Advanced',
-    category: 'Internals',
-    sectionId: 'internals',
-    description: 'Deconstruct the work loop, child-sibling traversal, priority scheduling, and fiber pools.',
-    xpReward: 100
-  },
-  {
-    id: 'effect-timeline',
-    title: 'useEffect & Closures',
-    subtitle: 'Dependency array snapshots',
-    difficulty: 'Intermediate',
-    category: 'Hooks',
-    sectionId: 'hooks',
-    description: 'Explore the effect timeline, cleanups, Object.is comparisons, and stale closures.',
-    xpReward: 100
-  },
-  {
-    id: 'state-flow',
-    title: 'State Architecture',
-    subtitle: 'Context vs Prop Drilling vs Zustand',
-    difficulty: 'Intermediate',
-    category: 'State Management',
+    category: 'Interactivity',
     sectionId: 'state',
-    description: 'Compare prop drilling, Context provider updates, and external store selector mechanisms.',
+    description: 'Learn useState snapshot models, asynchronous update queues, and state event batching optimizations.',
     xpReward: 100
   },
   {
-    id: 'rerender-heatmap',
-    title: 'Rerender heatmaps',
-    subtitle: 'Memoization & prop equalities',
+    id: 'effect',
+    title: '5. Side Effects (useEffect)',
+    subtitle: 'Synchronization & Cleanup',
+    difficulty: 'Intermediate',
+    category: 'Lifecycles',
+    sectionId: 'effect',
+    description: 'Synchronize components with external APIs, control trigger arrays, and clean up memory leaks.',
+    xpReward: 100
+  },
+  {
+    id: 'custom-hooks',
+    title: '6. Custom Hooks',
+    subtitle: 'Logic extraction & encapsulation',
+    difficulty: 'Intermediate',
+    category: 'Abstraction',
+    sectionId: 'custom-hooks',
+    description: 'Abstract complicated operations into custom reusable hooks and inspect state isolation rules.',
+    xpReward: 100
+  },
+  {
+    id: 'context',
+    title: '7. Context API',
+    subtitle: 'Global State & Drilling Avoidance',
     difficulty: 'Advanced',
-    category: 'Performance',
-    sectionId: 'performance',
-    description: 'Measure rendering cascades, toggle React.memo, and audit callback references.',
+    category: 'State Management',
+    sectionId: 'context',
+    description: 'Avoid prop drilling pipelines. Broadcast app-wide theme and authentication updates down the tree optimized.',
     xpReward: 100
-  },
-  {
-    id: 'event-loop',
-    title: 'JS Event Loop & Starvation',
-    subtitle: 'Microtasks vs Macrotasks vs Paint',
-    difficulty: 'Intermediate',
-    category: 'Browser Internals',
-    sectionId: 'browser',
-    description: 'Simulate call stack execution, timers, Promise loops, and browser paint schedules.',
-    xpReward: 100
-  },
-  {
-    id: 'http-lifecycle',
-    title: 'API Pipeline optimization',
-    subtitle: 'Debounce & Throttle network lines',
-    difficulty: 'Intermediate',
-    category: 'Networking',
-    sectionId: 'networking',
-    description: 'Implement debounces and throttles, analyze network lines, and learn CORS basics.',
-    xpReward: 100
-  },
-  {
-    id: 'challenges',
-    title: 'Debugging Playground',
-    subtitle: 'Interactive sandbox missions',
-    difficulty: 'Expert',
-    category: 'Troubleshooting',
-    sectionId: 'challenges',
-    description: 'De-bug real broken code snippets to prove your React engine engineering skills.',
-    xpReward: 1000 // Big final reward for completing the playground
   }
 ];
 
@@ -129,43 +109,36 @@ export const PathwayRoadmap: React.FC = () => {
     xp, 
     setSection, 
     resetXPAndCompletion,
-    resetChallenges
   } = useLearningStore();
 
-  // Calculations for rank level
-  // Level 1: 0-200 XP (React Novice)
-  // Level 2: 201-500 XP (Hook Apprentice)
-  // Level 3: 501-900 XP (Fiber Explorer)
-  // Level 4: 901-1400 XP (Render Engineer)
-  // Level 5: 1401+ XP (React Architect)
   const getRankInfo = (userXp: number) => {
     if (userXp <= 200) {
       const nextLevelXp = 200;
       const progress = (userXp / nextLevelXp) * 100;
       return { level: 1, title: 'React Novice', nextLevelXp, progress };
-    } else if (userXp <= 500) {
+    } else if (userXp <= 400) {
       const currentLevelBase = 200;
-      const nextLevelXp = 500;
+      const nextLevelXp = 400;
       const progress = ((userXp - currentLevelBase) / (nextLevelXp - currentLevelBase)) * 100;
-      return { level: 2, title: 'Hook Apprentice', nextLevelXp, progress };
-    } else if (userXp <= 900) {
-      const currentLevelBase = 500;
-      const nextLevelXp = 900;
+      return { level: 2, title: 'JSX Squire', nextLevelXp, progress };
+    } else if (userXp <= 600) {
+      const currentLevelBase = 400;
+      const nextLevelXp = 600;
       const progress = ((userXp - currentLevelBase) / (nextLevelXp - currentLevelBase)) * 100;
-      return { level: 3, title: 'Fiber Explorer', nextLevelXp, progress };
-    } else if (userXp <= 1400) {
-      const currentLevelBase = 900;
-      const nextLevelXp = 1400;
+      return { level: 3, title: 'State Apprentice', nextLevelXp, progress };
+    } else if (userXp <= 700) {
+      const currentLevelBase = 600;
+      const nextLevelXp = 700;
       const progress = ((userXp - currentLevelBase) / (nextLevelXp - currentLevelBase)) * 100;
-      return { level: 4, title: 'Render Engineer', nextLevelXp, progress };
+      return { level: 4, title: 'Hook Engineer', nextLevelXp, progress };
     } else {
-      return { level: 5, title: 'React Architect', nextLevelXp: 1400, progress: 100 };
+      return { level: 5, title: 'Context Architect', nextLevelXp: 700, progress: 100 };
     }
   };
 
   const rank = getRankInfo(xp);
   const totalModules = ROADMAP_NODES.length;
-  const completedCount = completedModules.length + (solvedChallenges.length === 5 ? 1 : 0);
+  const completedCount = completedModules.length;
   const percentComplete = Math.round((completedCount / totalModules) * 100);
 
   const getDifficultyBadge = (diff: string) => {
@@ -173,97 +146,76 @@ export const PathwayRoadmap: React.FC = () => {
       case 'Beginner': return 'bg-success/15 border border-success/30 text-success';
       case 'Intermediate': return 'bg-warning/15 border border-warning/30 text-warning';
       case 'Advanced': return 'bg-accent-purple/15 border border-accent-purple/30 text-accent-purple';
-      case 'Expert': return 'bg-danger/15 border border-danger/30 text-danger animate-pulse';
       default: return 'bg-zinc-800 text-zinc-400';
     }
   };
 
   const badges: BadgeInfo[] = [
     {
-      id: 'rendering-flow',
-      name: 'Rendering Pioneer',
-      desc: 'Completed Rendering Flow',
+      id: 'intro',
+      name: 'VDOM Pioneer',
+      desc: 'Finished React Intro',
       icon: <BookOpen size={18} />,
       color: 'from-indigo-600 to-blue-500 text-indigo-100',
       glow: 'glow-indigo'
     },
     {
-      id: 'vdom-diff',
-      name: 'VDOM Inspector',
-      desc: 'Completed VDOM Diffing',
+      id: 'jsx',
+      name: 'JSX Compiler',
+      desc: 'Finished JSX Basics',
       icon: <Layers size={18} />,
       color: 'from-amber-600 to-orange-500 text-amber-100',
       glow: 'glow-warning'
     },
     {
-      id: 'fiber-explorer',
-      name: 'Fiber Loop Walker',
-      desc: 'Completed Fiber Explorer',
+      id: 'props',
+      name: 'Prop Master',
+      desc: 'Finished Props Flow',
       icon: <Cpu size={18} />,
       color: 'from-purple-600 to-indigo-500 text-purple-100',
       glow: 'glow-purple'
     },
     {
-      id: 'effect-timeline',
-      name: 'Timeline Sync Master',
-      desc: 'Completed useEffect Timeline',
+      id: 'state',
+      name: 'State Manager',
+      desc: 'Finished useState Lab',
       icon: <Activity size={18} />,
       color: 'from-emerald-600 to-teal-500 text-emerald-100',
       glow: 'glow-success'
     },
     {
-      id: 'state-flow',
-      name: 'Stateflow Architect',
-      desc: 'Completed State Flow',
+      id: 'effect',
+      name: 'Lifecycle Sage',
+      desc: 'Finished useEffect Lab',
       icon: <Database size={18} />,
       color: 'from-sky-600 to-blue-500 text-sky-100',
       glow: 'glow-blue'
     },
     {
-      id: 'rerender-heatmap',
-      name: 'Heatmap Optimizer',
-      desc: 'Completed Heatmap Audit',
+      id: 'custom-hooks',
+      name: 'Hook Composer',
+      desc: 'Finished Custom Hooks',
       icon: <Flame size={18} />,
       color: 'from-rose-600 to-red-500 text-rose-100',
       glow: 'glow-danger'
     },
     {
-      id: 'event-loop',
-      name: 'Loop Threadmaster',
-      desc: 'Completed Event Loop',
-      icon: <Terminal size={18} />,
-      color: 'from-cyan-600 to-teal-500 text-cyan-100',
-      glow: 'glow-blue'
-    },
-    {
-      id: 'http-lifecycle',
-      name: 'Throttle Commander',
-      desc: 'Completed Debounce/Throttle',
+      id: 'context',
+      name: 'Global Provider',
+      desc: 'Finished Context API',
       icon: <Globe size={18} />,
       color: 'from-teal-600 to-emerald-500 text-teal-100',
       glow: 'glow-success'
-    },
-    {
-      id: 'all-challenges',
-      name: 'Bug Exterminator',
-      desc: 'Solved All Playground Snags',
-      icon: <Trophy size={18} />,
-      color: 'from-amber-500 to-yellow-400 text-amber-950 font-bold',
-      glow: 'glow-warning'
     }
   ];
 
   const isBadgeUnlocked = (badgeId: string) => {
-    if (badgeId === 'all-challenges') {
-      return solvedChallenges.length === 5;
-    }
     return completedModules.includes(badgeId);
   };
 
   const handleResetProgress = () => {
-    if (confirm('Are you sure you want to reset all learning pathway achievements, completed labs, and XP? This cannot be undone.')) {
+    if (confirm('Are you sure you want to reset all React learning pathway achievements, completed labs, and XP? This cannot be undone.')) {
       resetXPAndCompletion();
-      resetChallenges();
     }
   };
 
@@ -278,13 +230,13 @@ export const PathwayRoadmap: React.FC = () => {
         <div className="space-y-2 flex-1 text-center md:text-left select-text">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-indigo-400 text-xs font-semibold font-mono tracking-wider">
             <Sparkles size={12} className="animate-spin-slow" />
-            REACT MASTERY LEARNING PATHWAY
+            REACT PATHWAY TO CONTEXT
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-zinc-100 tracking-tight leading-none">
-            Your Interactive Engineering Journey
+            Your Step-by-Step Learning Route
           </h1>
           <p className="text-xs text-zinc-400 max-w-xl font-sans leading-relaxed">
-            Welcome to the ultimate learning track. Learn React internal workings, reconciler loops, hooks timelines, browser loops, and debugging side-by-side using real-time simulation engines.
+            Welcome to the perfect React learning path. Master JSX compilation, props data flows, state snapping, effect controls, custom hooks, and Context step-by-step with real-time playgrounds.
           </p>
         </div>
 
@@ -298,10 +250,10 @@ export const PathwayRoadmap: React.FC = () => {
       </div>
 
       {/* 2. Stats Grid Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Progress Card */}
-        <GlassCard title="Learning Pathway Progress">
+        <GlassCard title="React Pathway Progress">
           <div className="flex items-center gap-5 py-2 select-text">
             {/* SVG Circular Meter */}
             <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
@@ -329,7 +281,7 @@ export const PathwayRoadmap: React.FC = () => {
                 {completedCount} / {totalModules} Modules
               </div>
               <p className="text-[10px] text-zinc-400 leading-normal">
-                Study labs, complete visualizers, and resolve playground bugs to achieve 100% completion.
+                Study theory, edit sample codes, and mark modules completed to achieve 100% mastery.
               </p>
             </div>
           </div>
@@ -368,31 +320,9 @@ export const PathwayRoadmap: React.FC = () => {
           </div>
         </GlassCard>
 
-        {/* Challenges solved Card */}
-        <GlassCard title="Playground Mission Stats">
-          <div className="flex items-center gap-5 py-2 select-text">
-            <div className="w-16 h-16 rounded-xl bg-zinc-900/50 border border-zinc-850 flex flex-col items-center justify-center text-zinc-300 shadow-inner select-none">
-              <Trophy size={24} className={solvedChallenges.length === 5 ? 'text-amber-400 animate-bounce' : 'text-zinc-600'} />
-              <span className="text-[9px] font-mono mt-0.5">BADGES</span>
-            </div>
-
-            <div className="space-y-1">
-              <div className="text-zinc-500 text-[10px] font-mono font-bold tracking-wider">MISSIONS COMPLETED</div>
-              <div className="text-lg font-bold text-zinc-200">
-                {solvedChallenges.length} / 5 Challenges
-              </div>
-              <p className="text-[10px] text-zinc-400 leading-normal">
-                {solvedChallenges.length === 5 
-                  ? 'All debug challenges resolved! Master title unlocked.' 
-                  : 'Find and fix standard react memory leaks, stale states, and race issues.'}
-              </p>
-            </div>
-          </div>
-        </GlassCard>
-
       </div>
 
-      {/* 3. Connected Pathway Map (Subway / Connected timeline nodes) */}
+      {/* 3. Connected Pathway Map */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 select-none">
           <Compass size={18} className="text-zinc-400" />
@@ -404,14 +334,8 @@ export const PathwayRoadmap: React.FC = () => {
           <div className="absolute left-[39px] top-10 bottom-10 w-0.5 bg-gradient-to-b from-primary via-accent-purple to-zinc-800 border-l border-dashed border-zinc-700/40 hidden md:block" />
           
           {ROADMAP_NODES.map((node, index) => {
-            const isCompleted = node.id === 'challenges' 
-              ? solvedChallenges.length === 5 
-              : completedModules.includes(node.id);
-            const isPrevCompleted = index === 0 || (
-              ROADMAP_NODES[index - 1].id === 'challenges'
-                ? solvedChallenges.length === 5
-                : completedModules.includes(ROADMAP_NODES[index - 1].id)
-            );
+            const isCompleted = completedModules.includes(node.id);
+            const isPrevCompleted = index === 0 || completedModules.includes(ROADMAP_NODES[index - 1].id);
             const isLocked = !isPrevCompleted;
             const isActive = !isCompleted && !isLocked;
 
@@ -426,7 +350,7 @@ export const PathwayRoadmap: React.FC = () => {
                 }`}
               >
                 
-                {/* Node Status Circle (Timeline Indicator) */}
+                {/* Node Status Circle */}
                 <div className="relative z-10 w-12 h-12 rounded-full border flex items-center justify-center shrink-0 shadow-lg select-none transition-all duration-300 bg-zinc-950">
                   {isCompleted ? (
                     <div className="w-10 h-10 rounded-full bg-success/20 border border-success/40 flex items-center justify-center text-success glow-success">
@@ -453,7 +377,7 @@ export const PathwayRoadmap: React.FC = () => {
                     : 'border-zinc-850/60 hover:border-zinc-700'
                 }`}>
                   
-                  {/* Category, Title, Difficulty (8 cols) */}
+                  {/* Category, Title, Difficulty */}
                   <div className="lg:col-span-8 space-y-1.5 select-text">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[9px] font-bold text-zinc-500 font-mono uppercase tracking-wider">
@@ -482,7 +406,7 @@ export const PathwayRoadmap: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Navigation Button / Action (4 cols) */}
+                  {/* Navigation Button */}
                   <div className="lg:col-span-4 flex items-center justify-start lg:justify-end gap-3 select-none">
                     <button
                       onClick={() => setSection(node.sectionId, node.id)}
@@ -496,7 +420,7 @@ export const PathwayRoadmap: React.FC = () => {
                       }`}
                     >
                       <Play size={12} className={isActive ? 'fill-white' : ''} />
-                      {isCompleted ? 'Review Lab' : isLocked ? 'Locked' : 'Start Visual Lab'}
+                      {isCompleted ? 'Review Lab' : isLocked ? 'Locked' : 'Start Lesson'}
                     </button>
                   </div>
 
@@ -509,14 +433,14 @@ export const PathwayRoadmap: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Achievements / Badges Showcase */}
+      {/* 4. Achievements Showcase */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 select-none">
           <Trophy size={18} className="text-zinc-400" />
           <h2 className="text-base font-bold text-zinc-200 tracking-wide uppercase">Unlocked Badge Cabinet</h2>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
           {badges.map((badge) => {
             const unlocked = isBadgeUnlocked(badge.id);
             return (
