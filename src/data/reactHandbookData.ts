@@ -3308,15 +3308,508 @@ export default function GoodWidget() {
     ],
     interviewQuestions: [
       {
-        question: 'What are the main benefits of separating business logic and component layouts in React?',
-        answer: 'It improves code reusability (logic can be shared across multiple components), simplifies testing (logic can be tested in isolation without rendering UI), and makes components easier to read and maintain.',
+        question: 'What are the main benefits of separating network requests and business logic from UI components?',
+        answer: 'It improves separation of concerns, keeps UI components focused strictly on rendering, and makes components easier to read. It also makes business logic (in custom hooks) and network requests (in service layers) reusable and much easier to unit test in isolation.',
         level: 'intermediate'
       },
       {
-        question: 'How do path aliases in tsconfig benefit large-scale applications?',
-        answer: 'They replace long, fragile relative paths (`../../../../components`) with clean, stable absolute paths (`@/components`), making it easier to move files and refactor the directory structure.',
+        question: 'How do absolute import path aliases help in scaling a React codebase?',
+        answer: 'Absolute import path aliases (e.g., using `@/components/Button` instead of `../../../components/Button`) prevent brittle and hard-to-read relative paths. This makes moving files and refactoring the directory structure much easier because the import statements do not need to be updated relative to the new file location.',
         level: 'beginner'
       }
     ]
   }
-);
+];
+
+export interface LanguageConfig {
+  id: string;
+  name: string;
+  icon: string;
+  accentClass: {
+    text: string;
+    bg: string;
+    border: string;
+    primary: string;
+    hover: string;
+    ring: string;
+  };
+  categories: string[];
+}
+
+export const languages: LanguageConfig[] = [
+  {
+    id: 'react',
+    name: 'React Handbook',
+    icon: 'react',
+    accentClass: {
+      text: 'text-indigo-600 dark:text-indigo-400',
+      bg: 'bg-indigo-50 dark:bg-indigo-950/40',
+      border: 'border-indigo-100 dark:border-indigo-900/30',
+      primary: 'bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white',
+      hover: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20 hover:text-indigo-600 dark:hover:text-indigo-400',
+      ring: 'focus:ring-indigo-500'
+    },
+    categories: [
+      'React Core Foundations',
+      'State & Events',
+      'Hooks Deep Dive',
+      'Dynamic UI & Networking',
+      'Advanced React & State',
+      'Production Engineering'
+    ]
+  },
+  {
+    id: 'javascript',
+    name: 'JavaScript Handbook',
+    icon: 'javascript',
+    accentClass: {
+      text: 'text-amber-600 dark:text-amber-400',
+      bg: 'bg-amber-50 dark:bg-amber-950/40',
+      border: 'border-amber-100 dark:border-amber-900/30',
+      primary: 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white',
+      hover: 'hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:text-amber-600 dark:hover:text-amber-400',
+      ring: 'focus:ring-amber-500'
+    },
+    categories: [
+      'JavaScript Foundations',
+      'Asynchronous JavaScript',
+      'Modern JavaScript'
+    ]
+  },
+  {
+    id: 'typescript',
+    name: 'TypeScript Handbook',
+    icon: 'typescript',
+    accentClass: {
+      text: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-blue-50 dark:bg-blue-950/40',
+      border: 'border-blue-100 dark:border-blue-900/30',
+      primary: 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white',
+      hover: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:text-blue-600 dark:hover:text-blue-400',
+      ring: 'focus:ring-blue-500'
+    },
+    categories: ['TypeScript Foundations', 'Advanced Types', 'TypeScript with React']
+  },
+  {
+    id: 'sql',
+    name: 'SQL Handbook',
+    icon: 'sql',
+    accentClass: {
+      text: 'text-emerald-600 dark:text-emerald-400',
+      bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+      border: 'border-emerald-100 dark:border-emerald-900/30',
+      primary: 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white',
+      hover: 'hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 dark:hover:text-emerald-400',
+      ring: 'focus:ring-emerald-500'
+    },
+    categories: ['SQL Basics', 'Joins & Subqueries', 'Performance Tuning']
+  },
+  {
+    id: 'nodejs',
+    name: 'Node.js Handbook',
+    icon: 'nodejs',
+    accentClass: {
+      text: 'text-green-600 dark:text-green-400',
+      bg: 'bg-green-50 dark:bg-green-950/40',
+      border: 'border-green-100 dark:border-green-900/30',
+      primary: 'bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white',
+      hover: 'hover:bg-green-50 dark:hover:bg-green-950/20 hover:text-green-600 dark:hover:text-green-400',
+      ring: 'focus:ring-green-500'
+    },
+    categories: ['Node.js Core', 'Express APIs', 'Streams & Architecture']
+  }
+];
+
+export const javascriptHandbookData: HandbookTopic[] = [
+  {
+    id: 'js-closures',
+    title: 'Scope & Closures',
+    category: 'JavaScript Foundations',
+    description: 'Master lexical scope, execution context, private variables, and closure mechanics.',
+    definition: {
+      what: 'A closure is the combination of a function bundled together with references to its surrounding state (lexical environment). In other words, a closure gives an inner function access to the outer function\'s scope even after the outer function has returned.',
+      why: 'Closures are fundamental for data encapsulation (creating private variables), maintaining state between function calls, and implementing functional programming patterns like currying.',
+      when: 'Use closures whenever you need to associate data (the lexical environment) with a function that operates on that data, such as in callback functions, event handlers, or private module APIs.'
+    },
+    theory: {
+      internalBehavior: 'JavaScript uses a static lexical scoping model, meaning scope is determined at compile time based on nesting. When a function executes, an Execution Context is created, containing a Lexical Environment. This environment stores local variables and a reference to its parent Lexical Environment. Because inner functions retain a reference to their outer Lexical Environment, the JavaScript engine does not garbage collect the variables in that outer environment, preserving them in memory.',
+      coreConcepts: '• Lexical Scope: The static hierarchy of variable accessibility determined by the physical placement of blocks in the source code.\n• Execution Context: The internal environment created when code runs, maintaining local variables (Environment Record) and the outer scope chain.\n• Scope Chain: The chain of references back to parent environments used to resolve identifier bindings.\n• Garbage Collection: JavaScript\'s automatic memory manager, which skips clearing memory for elements still referenced by active closures.'
+    },
+    syntax: {
+      explanation: 'Define a function inside another function, access outer variables, and return the inner function.',
+      code: `function createCounter() {
+  let count = 0; // Private variable encapsulated by closure
+  return {
+    increment: () => ++count,
+    decrement: () => --count,
+    getCount: () => count
+  };
+}
+
+const counter = createCounter();
+console.log(counter.increment()); // 1
+console.log(counter.getCount());    // 1`
+    },
+    examples: {
+      beginner: {
+        title: 'Simple Counter Closure',
+        code: `export default function simpleCounter() {
+  let count = 0;
+  return () => {
+    count++;
+    return count;
+  };
+}`,
+        explanation: 'The returned function maintains a closure over the `count` variable, allowing it to increment and persist the value across calls.'
+      },
+      intermediate: {
+        title: 'Private Variables (Module Pattern)',
+        code: `export function createBankAccount(initialBalance: number) {
+  let balance = initialBalance; // Fully private variable
+
+  return {
+    deposit(amount: number) {
+      if (amount > 0) balance += amount;
+      return balance;
+    },
+    withdraw(amount: number) {
+      if (amount <= balance) {
+        balance -= amount;
+        return balance;
+      }
+      throw new Error('Insufficient funds');
+    },
+    getBalance: () => balance
+  };
+}`,
+        explanation: 'The bank account balance is hidden from direct access. It can only be modified through the safe public methods returned.'
+      },
+      realWorld: {
+        title: 'Mock useState Implementation via Closures',
+        code: `// A custom micro-framework state resolver using closures
+export const MiniReact = (() => {
+  let states: any[] = [];
+  let index = 0;
+
+  return {
+    useState<T>(initialValue: T): [T, (newValue: T) => void] {
+      const currentIndex = index;
+      if (states[currentIndex] === undefined) {
+        states[currentIndex] = initialValue;
+      }
+
+      const setState = (newValue: T) => {
+        states[currentIndex] = newValue;
+        // Trigger a re-render in a real framework
+        console.log(\`State index \${currentIndex} updated to\`, newValue);
+      };
+
+      const value = states[currentIndex];
+      index++; // Increment index for next hook call
+      return [value, setState];
+    },
+    resetIndex() {
+      index = 0; // Reset index before each mock render run
+    }
+  };
+})();`,
+        explanation: 'This models how React\'s own hooks work internally under the hood. Using closures and a global tracking array, the state is persisted and modified by index across individual render cycles.'
+      }
+    },
+    notes: {
+      bestPractices: [
+        'Do not create unnecessary functions inside functions if they do not need closures, to avoid overhead.',
+        'Nullify references to closure-bound functions when they are no longer needed to allow the garbage collector to free memory.',
+        'Use closures to write self-contained helper modules that do not pollute the global namespace.'
+      ],
+      performanceTips: [
+        'Closures prevent garbage collection of the entire outer lexical scope. Be mindful of variables in outer scopes.',
+        'In tight execution loops, avoid creating brand new closures inside the loop to prevent memory allocation spikes.'
+      ],
+      interviewPoints: [
+        'Explain how the Lexical Environment maintains parent scope references in the execution stack.',
+        'Discuss memory leak scenarios with closures, particularly when elements are bound to DOM event listeners.'
+      ]
+    },
+    commonMistakes: [
+      {
+        title: 'Creating Closures Inside Loops (The var Trap)',
+        wrongCode: `function runTimers() {
+  for (var i = 1; i <= 3; i++) {
+    setTimeout(function() {
+      console.log('Timer:', i);
+    }, i * 1000);
+  }
+}
+runTimers(); // Output: Timer: 4, Timer: 4, Timer: 4`,
+        correctedCode: `function runTimers() {
+  for (let i = 1; i <= 3; i++) { // Correct: let is block-scoped!
+    setTimeout(function() {
+      console.log('Timer:', i);
+    }, i * 1000);
+  }
+}
+runTimers(); // Output: Timer: 1, Timer: 2, Timer: 3`,
+        explanation: 'Using `var` declares a function-scoped variable, which is shared by all closure timers. By the time the callbacks fire, the single shared `i` variable has been incremented to 4. Using `let` creates a separate block-scoped variable binding for each loop iteration, preserving the value correctly inside each closure.'
+      }
+    ],
+    interviewQuestions: [
+      {
+        question: 'What is a closure in JavaScript, and what is its relation to lexical scope?',
+        answer: 'A closure is formed when a nested function retains access to its lexical scope (outer variables) even after the outer function has finished executing. JavaScript uses lexical scoping, meaning scopes are resolved statically during code compilation; closures are the mechanism by which scopes are preserved across runtime context boundaries.',
+        level: 'beginner'
+      },
+      {
+        question: 'How do closures cause memory leaks, and how can you resolve them?',
+        answer: 'Memory leaks occur when closure-bound variables reference large objects or DOM nodes that are no longer active, but cannot be garbage-collected because the inner function reference is still stored globally or inside active timers. They are resolved by removing event listeners, clearing intervals, or setting references to null once the closure-bound function is obsolete.',
+        level: 'advanced'
+      }
+    ]
+  },
+  {
+    id: 'js-async',
+    title: 'Asynchronous JavaScript',
+    category: 'Asynchronous JavaScript',
+    description: 'Master the Event Loop, Callbacks, Promises, and async/await syntax.',
+    definition: {
+      what: 'Asynchronous JavaScript is a programming model that allows the execution of operations (like networking, timers, and filesystem access) in the background without freezing the single execution thread of the browser or server.',
+      why: 'Since JavaScript is single-threaded, synchronous operations that take time (such as fetching data from an API) would block the main UI thread, making the interface completely unresponsive.',
+      when: 'Use asynchronous operations for any task that involves external resources, I/O latency, timers, or long-running database requests.'
+    },
+    theory: {
+      internalBehavior: 'The JavaScript engine has a single Call Stack. Asynchronous tasks (e.g. `fetch`) are delegated to Web APIs (browser) or C++ APIs (Node.js). When these background tasks finish, their callbacks are pushed to either the Microtask Queue (Promises) or the Macrotask/Task Queue (`setTimeout`, DOM events). The Event Loop continually monitors the Call Stack. If the stack is empty, it first processes all microtasks, then takes one task from the macrotask queue, executing it, and repeating the cycle.',
+      coreConcepts: '• Call Stack: Where synchronous code is pushed and executed.\n• Web APIs: Multi-threaded background handlers for network, timer, and DOM events.\n• Microtask Queue: Highest priority queue processing Promises and MutationObservers immediately after the current task finishes.\n• Macrotask Queue: Standard queue for timers, I/O events, and UI rendering intervals.'
+    },
+    syntax: {
+      explanation: 'Use promises or the modern async/await syntax to handle asynchronous operations cleanly.',
+      code: `// Async/Await syntax
+async function loadUserData() {
+  try {
+    const response = await fetch('https://api.example.com/user');
+    const data = await response.json();
+    console.log('User loaded:', data);
+  } catch (error) {
+    console.error('Fetch error:', error);
+  }
+}`
+    },
+    examples: {
+      beginner: {
+        title: 'Delay Helper using Promises',
+        code: `export function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Usage
+// await delay(1000);`,
+        explanation: 'Wraps the callback-based `setTimeout` API in a modern Promise-based helper that can be awaited.'
+      },
+      intermediate: {
+        title: 'Parallel Promise Fetching',
+        code: `export async function fetchAggregatedData(userId: string) {
+  // Fire both requests concurrently rather than sequentially
+  const [profile, settings] = await Promise.all([
+    fetch(\`https://api.com/users/\${userId}\`).then(r => r.json()),
+    fetch(\`https://api.com/settings/\${userId}\`).then(r => r.json())
+  ]);
+
+  return { profile, settings };
+}`,
+        explanation: 'Using `Promise.all` starts both async fetch operations in parallel, cutting down the total latency compared to awaiting them sequentially.'
+      },
+      realWorld: {
+        title: 'Enterprise API Request Retry Wrapper',
+        code: `export async function fetchWithRetry<T>(
+  url: string,
+  options: RequestInit = {},
+  retries = 3,
+  delayMs = 1000
+): Promise<T> {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(\`HTTP \${response.status}\`);
+    return await response.json();
+  } catch (error) {
+    if (retries > 0) {
+      console.warn(\`Retrying \${url}. \${retries} attempts left...\`);
+      // Wait before retrying
+      await new Promise(res => setTimeout(res, delayMs));
+      return fetchWithRetry(url, options, retries - 1, delayMs * 1.5); // Exponential backoff
+    }
+    throw error;
+  }
+}`,
+        explanation: 'A highly reusable, real-world utility wrapper that catches network errors and retries the request recursively with progressive backoff before ultimately throwing.'
+      }
+    },
+    notes: {
+      bestPractices: [
+        'Always handle errors in Promises with `.catch()` or try-catch blocks in async functions.',
+        'Use `Promise.all` for fetching non-dependent resources in parallel rather than blocking sequentially.',
+        'Do not wrap synchronous code in Promises unnecessarily.'
+      ],
+      performanceTips: [
+        'Avoid blocking the event loop with synchronous computation. If needed, split work using `setTimeout` or Web Workers.',
+        'Be careful with loops: `await` inside a `for` loop executes tasks sequentially. Use `Promise.all` for parallel loops.'
+      ],
+      interviewPoints: [
+        'Explain the absolute priority of the Microtask Queue over the Macrotask Queue in the Event Loop.',
+        'Discuss why `async/await` is syntactic sugar on top of Promises and how it transpiles.'
+      ]
+    },
+    commonMistakes: [
+      {
+        title: 'The Sequential Await Antipattern',
+        wrongCode: `async function fetchConfig() {
+  const theme = await fetchTheme(); // Waits 2s
+  const layout = await fetchLayout(); // Waits 2s (Total: 4s)
+  return { theme, layout };
+}`,
+        correctedCode: `async function fetchConfig() {
+  const themePromise = fetchTheme(); 
+  const layoutPromise = fetchLayout();
+  
+  const theme = await themePromise; 
+  const layout = await layoutPromise; // Concurrently runs (Total: 2s)
+  return { theme, layout };
+}`,
+        explanation: 'In the wrong example, the second fetch does not start until the first fetch finishes, doubling latency. Creating promises first starts their executions concurrently, allowing them to resolve in parallel.'
+      }
+    ],
+    interviewQuestions: [
+      {
+        question: 'What is the Event Loop and how does JavaScript handle concurrency despite being single-threaded?',
+        answer: 'JavaScript handles concurrency by delegating time-consuming tasks to external environments (like the browser Web APIs) which run on separate threads. The Event Loop monitors the call stack and message queues. When the stack is empty, it pulls pending callbacks from the microtask and macrotask queues back into the execution stack, maintaining non-blocking execution.',
+        level: 'intermediate'
+      },
+      {
+        question: 'Compare Callbacks, Promises, and Async/Await in terms of syntax, error handling, and complexity.',
+        answer: 'Callbacks require passing nested functions, which can lead to nested indentation ("Callback Hell") and make errors difficult to catch. Promises solve this using chainable methods (`.then`, `.catch`), allowing linear async flows. Async/Await is modern syntactic sugar on top of Promises that allows asynchronous code to be written like synchronous code, using standard try-catch blocks for clean error handling.',
+        level: 'beginner'
+      }
+    ]
+  },
+  {
+    id: 'js-es6',
+    title: 'ES6+ Features',
+    category: 'Modern JavaScript',
+    description: 'Learn modern JavaScript features: destructuring, arrow functions, rest/spread, and safety operators.',
+    definition: {
+      what: 'ES6 (ECMAScript 2015) and subsequent standards introduced major syntactical improvements to JavaScript, including arrow functions, object/array destructuring, template literals, optional chaining, and nullish coalescing.',
+      why: 'Prior to ES6, JavaScript lacked clean syntax for common tasks (like string interpolation or function context binding), resulting in verbose, boilerplate-heavy, and error-prone code.',
+      when: 'Use these modern ES6+ syntax patterns continuously in your projects to write cleaner, safer, and more readable code.'
+    },
+    theory: {
+      internalBehavior: 'Modern JavaScript features compile down to legacy syntax (ES5) via compilers like Babel for older browser support. Arrow functions do not declare their own execution bindings (no local `this`, `arguments`, `super`, or `new.target`). Instead, they capture these values lexically from their enclosing scope. Optional chaining (`?.`) compiles into ternary checks that return `undefined` immediately if the left operand is null or undefined.',
+      coreConcepts: '• Lexical this: Arrow functions capture `this` statically from their declaration scope rather than dynamically at runtime.\n• Destructuring: Pattern matching syntax to extract values directly from arrays or object properties.\n• Short-circuiting: Halting expression evaluations immediately when nullish values are detected.\n• Rest vs Spread: Rest compiles parameter lists into arrays; spread expands arrays/objects into distinct arguments or keys.'
+    },
+    syntax: {
+      explanation: 'Utilize arrow functions, destructuring, and optional chaining to write concise operations.',
+      code: `// Arrow function and destructuring
+const formatUser = ({ firstName, lastName }) => \`\${firstName} \${lastName}\`;
+
+// Optional chaining and nullish coalescing
+const bio = user.profile?.biography ?? 'No bio written yet.';`
+    },
+    examples: {
+      beginner: {
+        title: 'Destructuring and Arrow Functions',
+        code: `export const getCoordinates = () => {
+  return { x: 10, y: 20 };
+};
+
+// Usage
+const { x, y } = getCoordinates();`,
+        explanation: 'Arrow function returns an object, which is immediately unpacked into variables `x` and `y` using destructuring.'
+      },
+      intermediate: {
+        title: 'Spread and Rest Operations',
+        code: `export function updateProfile(currentProfile: any, newSettings: any) {
+  // Use spread operator to shallow copy and override settings
+  return {
+    ...currentProfile,
+    ...newSettings,
+    updatedAt: new Date()
+  };
+}`,
+        explanation: 'Merges two objects into a new immutable object copy using the spread operator, ensuring the original states are not mutated.'
+      },
+      realWorld: {
+        title: 'Safe Deep-Merge Utility',
+        code: `export function deepMerge(target: any, source: any): any {
+  if (!source) return target;
+  
+  const output = { ...target };
+  
+  Object.keys(source).forEach((key) => {
+    const sourceVal = source[key];
+    const targetVal = target[key];
+    
+    if (sourceVal && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) {
+      output[key] = deepMerge(targetVal ?? {}, sourceVal);
+    } else {
+      output[key] = sourceVal ?? targetVal; // Fallback to target if source value is nullish
+    }
+  });
+  
+  return output;
+}`,
+        explanation: 'A highly useful utility function that deep merges source fields into target object structures, using recursion, key iterations, and nullish coalescing.'
+      }
+    },
+    notes: {
+      bestPractices: [
+        'Use Arrow functions for callbacks and context preservation, but avoid them as methods on objects where dynamic context is needed.',
+        'Use optional chaining only when keys are genuinely expected to be missing, to avoid masking coding bugs.',
+        'Use const by default; only use let if variable reassignment is explicitly required.'
+      ],
+      performanceTips: [
+        'Destructuring is optimized by modern V8 engines and runs at native speeds.',
+        'Be careful with deep spread copies inside state hooks, as they can cause extensive GC allocation overhead if run repeatedly.'
+      ],
+      interviewPoints: [
+        'Explain why arrow functions cannot be constructable (they lack a prototype property and internal constructor method).',
+        'Compare the behavior of the double-pipe operator (`||`) vs the nullish coalescing operator (`??`) with falsy values like zero or empty strings.'
+      ]
+    },
+    commonMistakes: [
+      {
+        title: 'Falsy values with double-pipe defaults',
+        wrongCode: `function setLimit(config: { limit?: number }) {
+  // WRONG: limit 0 is falsy, so it resolves to 10!
+  const limit = config.limit || 10;
+  return limit;
+}
+console.log(setLimit({ limit: 0 })); // Output: 10`,
+        correctedCode: `function setLimit(config: { limit?: number }) {
+  // CORRECT: limit 0 is valid, resolves to 0!
+  const limit = config.limit ?? 10;
+  return limit;
+}
+console.log(setLimit({ limit: 0 })); // Output: 0`,
+        explanation: 'The logical OR operator (`||`) falls back to default values for any falsy values (like `0`, `""`, `false`). The nullish coalescing operator (`??`) only falls back if the left operand is strictly nullish (`null` or `undefined`), preserving falsey numbers or strings.'
+      }
+    ],
+    interviewQuestions: [
+      {
+        question: 'Explain what lexical scope for "this" means and how arrow functions utilize it.',
+        answer: 'Lexical scope for "this" means that the value of the keyword "this" inside a function is bound statically to the surrounding declaration context rather than dynamically based on how the function is invoked. Arrow functions capture the parent scope\'s dynamic "this" binding and carry it, preventing the need to bind methods dynamically in constructors.',
+        level: 'intermediate'
+      },
+      {
+        question: 'What is the difference between shallow copy and deep copy, and does the spread operator perform deep copies?',
+        answer: 'A shallow copy copies object references but does not clone nested structures; nested items remain connected. A deep copy recursively clones all child objects, creating a fully independent structure. The spread operator only performs shallow copies—nested object keys will still reference the same original object in memory.',
+        level: 'beginner'
+      }
+    ]
+  }
+];
+
+export const handbookDataByLanguage: Record<string, HandbookTopic[]> = {
+  react: reactHandbookData,
+  javascript: javascriptHandbookData,
+  typescript: [],
+  sql: [],
+  nodejs: []
+};
+

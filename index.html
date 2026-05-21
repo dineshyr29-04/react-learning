@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>React Handbook - Premium Theory, Examples, &amp; Interview Prep</title>
     <meta name="description" content="Master React deeply with comprehensive definitions, internal mechanics, syntax guides, structured code examples, and company-grade interview questions." />
+    <script>
+      (function() {
+        try {
+          const theme = localStorage.getItem('react_handbook_theme');
+          if (theme) {
+            const parsed = JSON.parse(theme);
+            if (parsed === 'dark') {
+              document.documentElement.classList.add('dark');
+            } else if (parsed === 'light') {
+              document.documentElement.classList.remove('dark');
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body class="bg-background text-foreground select-none">
     <div id="root"></div>

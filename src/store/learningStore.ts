@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 export interface LearningState {
+  activeLanguageId: string;
   activeTopicId: string;
   searchQuery: string;
   completedTopics: string[];
@@ -9,6 +10,7 @@ export interface LearningState {
   expandedCategories: string[];
   
   // Actions
+  setActiveLanguageId: (id: string) => void;
   setActiveTopicId: (id: string) => void;
   setSearchQuery: (query: string) => void;
   toggleCompletedTopic: (id: string) => void;
@@ -38,6 +40,7 @@ const saveSafeLocalStorage = (key: string, value: any) => {
 };
 
 export const useLearningStore = create<LearningState>((set) => ({
+  activeLanguageId: getSafeLocalStorage('react_handbook_active_language', 'react'),
   activeTopicId: getSafeLocalStorage('react_handbook_active_topic', 'react-intro'),
   searchQuery: '',
   completedTopics: getSafeLocalStorage('react_handbook_completed', []),
@@ -45,7 +48,13 @@ export const useLearningStore = create<LearningState>((set) => ({
   theme: getSafeLocalStorage('react_handbook_theme', 'dark'),
   expandedCategories: getSafeLocalStorage('react_handbook_expanded_categories', [
     'React Core Foundations',
+    'JavaScript Foundations'
   ]),
+
+  setActiveLanguageId: (id) => set(() => {
+    saveSafeLocalStorage('react_handbook_active_language', id);
+    return { activeLanguageId: id };
+  }),
 
   setActiveTopicId: (id) => set(() => {
     saveSafeLocalStorage('react_handbook_active_topic', id);
