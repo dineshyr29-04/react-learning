@@ -1,237 +1,104 @@
 import { create } from 'zustand';
 
-export type SectionType = 
-  | 'roadmap'
-  | 'intro' 
-  | 'jsx' 
-  | 'props' 
-  | 'state' 
-  | 'effect' 
-  | 'custom-hooks' 
-  | 'context';
-
-export type LearningMode = 'beginner' | 'intermediate' | 'advanced' | 'interview';
-
-export interface ConsoleLog {
-  id: string;
-  text: string;
-  type: 'info' | 'success' | 'warn' | 'error' | 'system';
-  timestamp: string;
-}
-
-interface LearningState {
-  selectedSection: SectionType;
-  selectedLab: string;
-  learningMode: LearningMode;
-  solvedChallenges: string[];
-  completedModules: string[];
-  xp: number;
-  simulationSpeed: number; // 0.5, 1, 1.5, 2
-  simulationPlaying: boolean;
-  simulationStep: number;
-  logs: ConsoleLog[];
+export interface LearningState {
+  activeTopicId: string;
+  searchQuery: string;
+  completedTopics: string[];
+  bookmarkedTopics: string[];
+  theme: 'light' | 'dark';
+  expandedCategories: string[];
   
   // Actions
-  setSection: (section: SectionType, firstLab?: string) => void;
-  setLab: (labId: string) => void;
-  setLearningMode: (mode: LearningMode) => void;
-  toggleChallengeSolved: (challengeId: string) => void;
-  resetChallenges: () => void;
-  completeModule: (labId: string) => void;
-  addXp: (amount: number) => void;
-  resetXPAndCompletion: () => void;
-  setSimulationSpeed: (speed: number) => void;
-  setSimulationPlaying: (playing: boolean) => void;
-  setSimulationStep: (step: number) => void;
-  addLog: (text: string, type?: ConsoleLog['type']) => void;
-  clearLogs: () => void;
+  setActiveTopicId: (id: string) => void;
+  setSearchQuery: (query: string) => void;
+  toggleCompletedTopic: (id: string) => void;
+  toggleBookmarkedTopic: (id: string) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+  toggleCategory: (categoryName: string) => void;
+  setExpandedCategories: (categories: string[]) => void;
+  resetProgress: () => void;
 }
 
+// Helper to load state from localStorage if available
+const getSafeLocalStorage = (key: string, defaultValue: any) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch {
+    return defaultValue;
+  }
+};
+
+const saveSafeLocalStorage = (key: string, value: any) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error('LocalStorage write failed', e);
+  }
+};
+
 export const useLearningStore = create<LearningState>((set) => ({
-  selectedSection: 'roadmap',
-  selectedLab: 'roadmap',
-  learningMode: 'intermediate',
-  solvedChallenges: [],
-  completedModules: [],
-  xp: 0,
-  simulationSpeed: 1,
-  simulationPlaying: false,
-  simulationStep: 0,
-  logs: [
-    {
-      id: 'init',
-      text: 'React Learning Sandbox initialized. Start your journey!',
-      type: 'system',
-      timestamp: new Date().toLocaleTimeString(),
+  activeTopicId: getSafeLocalStorage('react_handbook_active_topic', 'react-intro'),
+  searchQuery: '',
+  completedTopics: getSafeLocalStorage('react_handbook_completed', []),
+  bookmarkedTopics: getSafeLocalStorage('react_handbook_bookmarks', []),
+  theme: getSafeLocalStorage('react_handbook_theme', 'dark'),
+  expandedCategories: getSafeLocalStorage('react_handbook_expanded_categories', [
+    'React Core Foundations',
+  ]),
+
+  setActiveTopicId: (id) => set(() => {
+    saveSafeLocalStorage('react_handbook_active_topic', id);
+    return { activeTopicId: id };
+  }),
+
+  setSearchQuery: (query) => set({ searchQuery: query }),
+
+  toggleCompletedTopic: (id) => set((state) => {
+    const completed = state.completedTopics.includes(id)
+      ? state.completedTopics.filter((tId) => tId !== id)
+      : [...state.completedTopics, id];
+    saveSafeLocalStorage('react_handbook_completed', completed);
+    return { completedTopics: completed };
+  }),
+
+  toggleBookmarkedTopic: (id) => set((state) => {
+    const bookmarked = state.bookmarkedTopics.includes(id)
+      ? state.bookmarkedTopics.filter((tId) => tId !== id)
+      : [...state.bookmarkedTopics, id];
+    saveSafeLocalStorage('react_handbook_bookmarks', bookmarked);
+    return { bookmarkedTopics: bookmarked };
+  }),
+
+  setTheme: (theme) => set(() => {
+    saveSafeLocalStorage('react_handbook_theme', theme);
+    // Apply class to documentElement
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
     }
-  ],
-
-  setSection: (section, firstLab) => set((state) => {
-    let lab = firstLab;
-    if (!lab) {
-      switch (section) {
-        case 'roadmap': lab = 'roadmap'; break;
-        case 'intro': lab = 'intro'; break;
-        case 'jsx': lab = 'jsx'; break;
-        case 'props': lab = 'props'; break;
-        case 'state': lab = 'state'; break;
-        case 'effect': lab = 'effect'; break;
-        case 'custom-hooks': lab = 'custom-hooks'; break;
-        case 'context': lab = 'context'; break;
-        default: lab = 'roadmap';
-      }
-    }
-    
-    // Auto-log section navigation
-    const sectionNames: Record<SectionType, string> = {
-      roadmap: 'Pathway Roadmap Map',
-      intro: '1. Introduction to React',
-      jsx: '2. JSX Fundamentals',
-      props: '3. Components & Props',
-      state: '4. State & Events',
-      effect: '5. Side Effects (useEffect)',
-      'custom-hooks': '6. Custom Hooks',
-      context: '7. Context API'
-    };
-
-    const newLog: ConsoleLog = {
-      id: Math.random().toString(36).substring(7),
-      text: `Navigated to module: [${sectionNames[section]}]`,
-      type: 'system',
-      timestamp: new Date().toLocaleTimeString(),
-    };
-
-    return { 
-      selectedSection: section, 
-      selectedLab: lab,
-      simulationPlaying: false,
-      simulationStep: 0,
-      logs: [newLog, ...state.logs].slice(0, 100) // Keep last 100 logs
-    };
+    return { theme };
   }),
 
-  setLab: (labId) => set((state) => {
-    const newLog: ConsoleLog = {
-      id: Math.random().toString(36).substring(7),
-      text: `Loaded visual lab: ${labId}`,
-      type: 'info',
-      timestamp: new Date().toLocaleTimeString(),
-    };
-    return { 
-      selectedLab: labId,
-      simulationPlaying: false,
-      simulationStep: 0,
-      logs: [newLog, ...state.logs].slice(0, 100)
-    };
+  toggleCategory: (categoryName) => set((state) => {
+    const expanded = state.expandedCategories.includes(categoryName)
+      ? state.expandedCategories.filter((c) => c !== categoryName)
+      : [...state.expandedCategories, categoryName];
+    saveSafeLocalStorage('react_handbook_expanded_categories', expanded);
+    return { expandedCategories: expanded };
   }),
 
-  setLearningMode: (mode) => set((state) => {
-    const newLog: ConsoleLog = {
-      id: Math.random().toString(36).substring(7),
-      text: `Switched learning mode to: ${mode.toUpperCase()}`,
-      type: 'info',
-      timestamp: new Date().toLocaleTimeString(),
-    };
-    return { 
-      learningMode: mode,
-      logs: [newLog, ...state.logs].slice(0, 100)
-    };
+  setExpandedCategories: (categories) => set(() => {
+    saveSafeLocalStorage('react_handbook_expanded_categories', categories);
+    return { expandedCategories: categories };
   }),
 
-  toggleChallengeSolved: (challengeId) => set((state) => {
-    const isSolved = state.solvedChallenges.includes(challengeId);
-    const updated = isSolved
-      ? state.solvedChallenges.filter(id => id !== challengeId)
-      : [...state.solvedChallenges, challengeId];
-    
-    const xpReward = 200;
-    const newXp = isSolved ? Math.max(0, state.xp - xpReward) : state.xp + xpReward;
-
-    const newLog: ConsoleLog = {
-      id: Math.random().toString(36).substring(7),
-      text: isSolved 
-        ? `Challenge reset: ${challengeId} (-${xpReward} XP)` 
-        : `Challenge solved successfully: ${challengeId} (+${xpReward} XP)`,
-      type: isSolved ? 'warn' : 'success',
-      timestamp: new Date().toLocaleTimeString(),
-    };
-
-    return { 
-      solvedChallenges: updated,
-      xp: newXp,
-      logs: [newLog, ...state.logs].slice(0, 100)
-    };
+  resetProgress: () => set(() => {
+    saveSafeLocalStorage('react_handbook_completed', []);
+    saveSafeLocalStorage('react_handbook_bookmarks', []);
+    return { completedTopics: [], bookmarkedTopics: [] };
   }),
-
-  resetChallenges: () => set((state) => {
-    // Deduct XP for all solved challenges being reset
-    const xpDeduction = state.solvedChallenges.length * 200;
-    const newXp = Math.max(0, state.xp - xpDeduction);
-    return {
-      solvedChallenges: [],
-      xp: newXp,
-      logs: [
-        {
-          id: Math.random().toString(36).substring(7),
-          text: `All playground challenge progress reset. (-${xpDeduction} XP)`,
-          type: 'warn' as const,
-          timestamp: new Date().toLocaleTimeString()
-        },
-        ...state.logs
-      ].slice(0, 100)
-    };
-  }),
-
-  completeModule: (labId) => set((state) => {
-    if (state.completedModules.includes(labId)) return {};
-    const completed = [...state.completedModules, labId];
-    const rewardXp = 100;
-    const newXp = state.xp + rewardXp;
-    
-    // Auto-log milestones
-    const newLog: ConsoleLog = {
-      id: Math.random().toString(36).substring(7),
-      text: `🎉 Milestone! Completed lab module: ${labId} (+${rewardXp} XP)`,
-      type: 'success',
-      timestamp: new Date().toLocaleTimeString(),
-    };
-
-    return {
-      completedModules: completed,
-      xp: newXp,
-      logs: [newLog, ...state.logs].slice(0, 100)
-    };
-  }),
-
-  addXp: (amount) => set((state) => ({ xp: state.xp + amount })),
-
-  resetXPAndCompletion: () => set((state) => {
-    const newLog: ConsoleLog = {
-      id: Math.random().toString(36).substring(7),
-      text: 'Learning pathway progress and XP reset to 0.',
-      type: 'warn',
-      timestamp: new Date().toLocaleTimeString()
-    };
-    return {
-      completedModules: [],
-      xp: 0,
-      logs: [newLog, ...state.logs].slice(0, 100)
-    };
-  }),
-
-  setSimulationSpeed: (speed) => set({ simulationSpeed: speed }),
-  setSimulationPlaying: (playing) => set({ simulationPlaying: playing }),
-  setSimulationStep: (step) => set({ simulationStep: step }),
-
-  addLog: (text, type = 'info') => set((state) => {
-    const newLog: ConsoleLog = {
-      id: Math.random().toString(36).substring(7),
-      text,
-      type,
-      timestamp: new Date().toLocaleTimeString(),
-    };
-    return { logs: [newLog, ...state.logs].slice(0, 100) };
-  }),
-
-  clearLogs: () => set({ logs: [] })
 }));
