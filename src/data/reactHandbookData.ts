@@ -3319,7 +3319,7 @@ export default function GoodWidget() {
       }
     ]
   }
-];
+);
 
 export interface LanguageConfig {
   id: string;
